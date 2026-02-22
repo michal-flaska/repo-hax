@@ -56,6 +56,7 @@ namespace cheat
         //   playerUpgradeExtraJump  - Token: 0x04001CC1
         //   playerUpgradeRange      - Token: 0x04001CCB
         //   playerUpgradeThrow      - Token: 0x04001CCA
+        // PhysGrabObject.isValuable  - Token: 0x04001F0B, internal bool
         // PhysGrabObject.OverrideIndestructible(float time) - Token: 0x060013DD
         //   sets impactDetector.isIndestructible = true for duration
         //   called every frame on all isValuable objects to prevent breaking
@@ -64,6 +65,9 @@ namespace cheat
 
         private static readonly FieldInfo _steamIDField = typeof(PlayerAvatar)
             .GetField("steamID", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+        private static readonly FieldInfo _isValuableField = typeof(PhysGrabObject)
+            .GetField("isValuable", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
         void Update()
         {
@@ -96,7 +100,7 @@ namespace cheat
             {
                 foreach (var obj in UnityEngine.Object.FindObjectsOfType<PhysGrabObject>())
                 {
-                    if (obj.isValuable)
+                    if ((bool)(_isValuableField?.GetValue(obj) ?? false))
                         obj.OverrideIndestructible(0.5f);
                 }
             }
