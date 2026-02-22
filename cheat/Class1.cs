@@ -27,6 +27,8 @@ namespace cheat
         private bool _godMode = false;
         private bool _speedHack = false;
         private float _speedMultiplier = 1f;
+        private bool _noRagdoll = false;
+        private bool _noBreak = false;
 
         private bool _showUpgrades = false;
         private int _upgradeValue = 10;
@@ -37,6 +39,8 @@ namespace cheat
         // PlayerAvatar.playerHealth  - Token: 0x0400209E, public PlayerHealth
         // PlayerAvatar.steamID       - Token: 0x040020AC, internal string
         // PlayerController.instance  - Token: 0x040021EE, public static
+        // PlayerController.DebugNoTumble - Token: 0x04002228, public bool
+        //   TumbleRequest checks this - if true and _playerInput is false, ragdoll is blocked
         // PlayerController.OverrideSpeed(float _speedMulti, float _time) - Token: 0x06001572
         //   internally multiplies playerOriginalMoveSpeed/SprintSpeed/CrouchSpeed
         //   playerOriginalMoveSpeed   - Token: 0x04002261, private float, set in LateStart() after upgrades
@@ -52,6 +56,9 @@ namespace cheat
         //   playerUpgradeExtraJump  - Token: 0x04001CC1
         //   playerUpgradeRange      - Token: 0x04001CCB
         //   playerUpgradeThrow      - Token: 0x04001CCA
+        // PhysGrabObject.OverrideIndestructible(float time) - Token: 0x060013DD
+        //   sets impactDetector.isIndestructible = true for duration
+        //   called every frame on all isValuable objects to prevent breaking
         private static readonly FieldInfo _healthField = typeof(PlayerHealth)
             .GetField("health", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
@@ -79,6 +86,19 @@ namespace cheat
                     pc.OverrideSpeed(_speedMultiplier, 0.5f);
                 else
                     pc.OverrideSpeed(1f, 0.1f);
+
+                // PlayerController.DebugNoTumble blocks TumbleRequest when _playerInput is false
+                // player-triggered tumble (key press) still works since it passes _playerInput = true
+                pc.DebugNoTumble = _noRagdoll;
+            }
+
+            if (_noBreak)
+            {
+                foreach (var obj in UnityEngine.Object.FindObjectsOfType<PhysGrabObject>())
+                {
+                    if (obj.isValuable)
+                        obj.OverrideIndestructible(0.5f);
+                }
             }
         }
 
@@ -88,18 +108,20 @@ namespace cheat
 
             if (!_showUpgrades)
             {
-                UnityEngine.GUI.Box(new Rect(20, 20, 220, 210), "REPO Cheat");
+                UnityEngine.GUI.Box(new Rect(20, 20, 220, 240), "REPO Cheat");
 
                 _godMode = UnityEngine.GUI.Toggle(new Rect(30, 50, 180, 25), _godMode, "God Mode");
                 _speedHack = UnityEngine.GUI.Toggle(new Rect(30, 80, 180, 25), _speedHack, "Speed Multiplier");
+                _noRagdoll = UnityEngine.GUI.Toggle(new Rect(30, 110, 180, 25), _noRagdoll, "No Ragdoll");
+                _noBreak = UnityEngine.GUI.Toggle(new Rect(30, 140, 180, 25), _noBreak, "No Break");
 
                 if (_speedHack)
                 {
-                    _speedMultiplier = UnityEngine.GUI.HorizontalSlider(new Rect(30, 110, 160, 20), _speedMultiplier, 1f, 5f);
-                    UnityEngine.GUI.Label(new Rect(30, 128, 180, 20), $"x{_speedMultiplier:F1} speed");
+                    _speedMultiplier = UnityEngine.GUI.HorizontalSlider(new Rect(30, 168, 160, 20), _speedMultiplier, 1f, 5f);
+                    UnityEngine.GUI.Label(new Rect(30, 183, 180, 20), $"x{_speedMultiplier:F1} speed");
                 }
 
-                if (UnityEngine.GUI.Button(new Rect(30, 160, 180, 30), "Upgrades"))
+                if (UnityEngine.GUI.Button(new Rect(30, 205, 180, 30), "Upgrades"))
                     _showUpgrades = true;
             }
             else
