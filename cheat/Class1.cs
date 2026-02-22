@@ -29,6 +29,7 @@ namespace cheat
         private float _speedMultiplier = 1f;
         private bool _noRagdoll = false;
         private bool _noBreak = false;
+        private bool _esp = false;
 
         private bool _showUpgrades = false;
         private int _upgradeValue = 10;
@@ -38,6 +39,7 @@ namespace cheat
         // PlayerAvatar.instance      - Token: 0x040020E4, public static
         // PlayerAvatar.playerHealth  - Token: 0x0400209E, public PlayerHealth
         // PlayerAvatar.steamID       - Token: 0x040020AC, internal string
+        // PlayerAvatar.playerName    - Token: 0x040020AB, internal string
         // PlayerController.instance  - Token: 0x040021EE, public static
         // PlayerController.DebugNoTumble - Token: 0x04002228, public bool
         //   TumbleRequest checks this - if true and _playerInput is false, ragdoll is blocked
@@ -68,6 +70,12 @@ namespace cheat
 
         private static readonly FieldInfo _isValuableField = typeof(PhysGrabObject)
             .GetField("isValuable", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+        private static readonly FieldInfo _playerNameField = typeof(PlayerAvatar)
+            .GetField("playerName", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+        // ESP label style, initialized once
+        private GUIStyle _espStyle;
 
         void Update()
         {
@@ -108,24 +116,37 @@ namespace cheat
 
         void OnGUI()
         {
+            // init style once
+            if (_espStyle == null)
+            {
+                _espStyle = new GUIStyle(UnityEngine.GUI.skin.label);
+                _espStyle.normal.textColor = Color.green;
+                _espStyle.fontStyle = FontStyle.Bold;
+                _espStyle.fontSize = 14;
+            }
+
+            if (_esp)
+                DrawESP();
+
             if (!_menuOpen) return;
 
             if (!_showUpgrades)
             {
-                UnityEngine.GUI.Box(new Rect(20, 20, 220, 240), "REPO Cheat");
+                UnityEngine.GUI.Box(new Rect(20, 20, 220, 270), "REPO Cheat");
 
                 _godMode = UnityEngine.GUI.Toggle(new Rect(30, 50, 180, 25), _godMode, "God Mode");
                 _speedHack = UnityEngine.GUI.Toggle(new Rect(30, 80, 180, 25), _speedHack, "Speed Multiplier");
                 _noRagdoll = UnityEngine.GUI.Toggle(new Rect(30, 110, 180, 25), _noRagdoll, "No Ragdoll");
                 _noBreak = UnityEngine.GUI.Toggle(new Rect(30, 140, 180, 25), _noBreak, "No Break");
+                _esp = UnityEngine.GUI.Toggle(new Rect(30, 170, 180, 25), _esp, "Player ESP");
 
                 if (_speedHack)
                 {
-                    _speedMultiplier = UnityEngine.GUI.HorizontalSlider(new Rect(30, 168, 160, 20), _speedMultiplier, 1f, 5f);
-                    UnityEngine.GUI.Label(new Rect(30, 183, 180, 20), $"x{_speedMultiplier:F1} speed");
+                    _speedMultiplier = UnityEngine.GUI.HorizontalSlider(new Rect(30, 198, 160, 20), _speedMultiplier, 1f, 5f);
+                    UnityEngine.GUI.Label(new Rect(30, 213, 180, 20), $"x{_speedMultiplier:F1} speed");
                 }
 
-                if (UnityEngine.GUI.Button(new Rect(30, 205, 180, 30), "Upgrades"))
+                if (UnityEngine.GUI.Button(new Rect(30, 235, 180, 30), "Upgrades"))
                     _showUpgrades = true;
             }
             else
@@ -154,6 +175,43 @@ namespace cheat
                     _showUpgrades = false;
             }
         }
+
+        private void DrawESP()
+        {
+            var cam = Camera.main;
+            if (cam == null) return;
+
+            foreach (var avatar in UnityEngine.Object.FindObjectsOfType<PlayerAvatar>())
+            {
+                // skip local player
+                bool isLocal = (bool)(_isLocalField?.GetValue(avatar) ?? false);
+                if (isLocal) continue;
+
+                // world to screen - Unity screen origin is bottom-left, GUI is top-left so flip Y
+                Vector3 screenPos = cam.WorldToScreenPoint(avatar.transform.position + Vector3.up * 1.5f);
+
+                // behind camera check
+                if (screenPos.z < 0) continue;
+
+                float screenY = Screen.height - screenPos.y;
+                string name = _playerNameField?.GetValue(avatar) as string ?? "Player";
+                int hp = avatar.playerHealth != null
+                    ? (int)(_healthField?.GetValue(avatar.playerHealth) ?? 0)
+                    : 0;
+
+                float distance = Vector3.Distance(
+                    PlayerAvatar.instance?.transform.position ?? Vector3.zero,
+                    avatar.transform.position
+                );
+
+                string label = $"{name}\nHP: {hp}\n{distance:F0}m";
+                UnityEngine.GUI.Label(new Rect(screenPos.x - 30, screenY - 10, 120, 60), label, _espStyle);
+            }
+        }
+
+        // PlayerAvatar.isLocal - Token: 0x040020B1, internal bool
+        private static readonly FieldInfo _isLocalField = typeof(PlayerAvatar)
+            .GetField("isLocal", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
         private void SetUpgrade(string dictName)
         {
