@@ -26,20 +26,18 @@ namespace cheat
         private bool _menuOpen = false;
         private bool _godMode = false;
         private bool _speedHack = false;
-
-        // multiplier: 1x = normal, 2x = double speed, etc.
         private float _speedMultiplier = 1f;
 
-        // base speeds from dnSpy:
-        // PlayerController.MoveSpeed   - Token: 0x04002201, public float, default 0.5f
-        // PlayerController.SprintSpeed - Token: 0x04002208, public float, default 1f
-        private const float DEFAULT_MOVE_SPEED = 0.5f;
-        private const float DEFAULT_SPRINT_SPEED = 1f;
-
-        // PlayerHealth.health   - Token: 0x04002377, internal int, default 100
-        // PlayerAvatar.isLocal  - Token: 0x040020B1, internal bool
-        // PlayerAvatar.instance - Token: 0x040020E4, public static
-        // PlayerAvatar.playerHealth - Token: 0x0400209E, public PlayerHealth
+        // PlayerHealth.health        - Token: 0x04002377, internal int, default 100
+        // PlayerAvatar.isLocal       - Token: 0x040020B1, internal bool
+        // PlayerAvatar.instance      - Token: 0x040020E4, public static
+        // PlayerAvatar.playerHealth  - Token: 0x0400209E, public PlayerHealth
+        // PlayerController.instance  - Token: 0x040021EE, public static
+        // PlayerController.OverrideSpeed(float _speedMulti, float _time) - Token: 0x06001572
+        //   internally multiplies playerOriginalMoveSpeed/SprintSpeed/CrouchSpeed
+        //   playerOriginalMoveSpeed   - Token: 0x04002261, private float, set in LateStart() after upgrades
+        //   playerOriginalSprintSpeed - Token: 0x04002263, internal float, set in LateStart() after upgrades
+        //   playerOriginalCrouchSpeed - Token: 0x04002264, private float, set in LateStart() after upgrades
         private static readonly FieldInfo _healthField = typeof(PlayerHealth)
             .GetField("health", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
@@ -48,8 +46,6 @@ namespace cheat
             if (UnityEngine.Input.GetKeyDown(KeyCode.Insert))
                 _menuOpen = !_menuOpen;
 
-            // PlayerController.instance is set in PlayerAvatar.Start() when photonView.IsMine
-            // safe to access as singleton after game loads
             var pc = PlayerController.instance;
             var ph = PlayerAvatar.instance?.playerHealth;
 
@@ -63,16 +59,10 @@ namespace cheat
             if (pc != null)
             {
                 if (_speedHack)
-                {
-                    pc.MoveSpeed = DEFAULT_MOVE_SPEED * _speedMultiplier;
-                    pc.SprintSpeed = DEFAULT_SPRINT_SPEED * _speedMultiplier;
-                }
+                    // keep refreshing the timer so it never expires
+                    pc.OverrideSpeed(_speedMultiplier, 0.5f);
                 else
-                {
-                    // reset to defaults when disabled
-                    pc.MoveSpeed = DEFAULT_MOVE_SPEED;
-                    pc.SprintSpeed = DEFAULT_SPRINT_SPEED;
-                }
+                    pc.OverrideSpeed(1f, 0.1f);
             }
         }
 
