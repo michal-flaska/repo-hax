@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Reflection;
 using UnityEngine;
-using UnityEngine.Windows;
 
 namespace cheat
 {
@@ -32,20 +28,21 @@ namespace cheat
 
         private PlayerHealth _localPlayerHealth;
 
+        private static FieldInfo _healthField = typeof(PlayerHealth).GetField("health", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+        private static FieldInfo _isLocalField = typeof(PlayerAvatar).GetField("isLocal", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
         void Update()
         {
-            // Toggle menu with Insert key
-            if (Input.GetKeyDown(KeyCode.Insert))
+            if (UnityEngine.Input.GetKeyDown(KeyCode.Insert))
                 _menuOpen = !_menuOpen;
 
-            // Try to find local player health if we don't have it
             if (_localPlayerHealth == null)
                 _localPlayerHealth = FindLocalPlayer();
 
             if (_godMode && _localPlayerHealth != null)
             {
                 _localPlayerHealth.InvincibleSet(9999f);
-                _localPlayerHealth.health = 100;
+                _healthField?.SetValue(_localPlayerHealth, 100);
             }
         }
 
@@ -53,20 +50,17 @@ namespace cheat
         {
             if (!_menuOpen) return;
 
-            GUI.Box(new Rect(20, 20, 200, 100), "REPO Cheat");
-
-            _godMode = GUI.Toggle(new Rect(30, 50, 180, 25), _godMode, "God Mode");
+            UnityEngine.GUI.Box(new Rect(20, 20, 200, 100), "REPO Cheat");
+            _godMode = UnityEngine.GUI.Toggle(new Rect(30, 50, 180, 25), _godMode, "God Mode");
         }
 
         private PlayerHealth FindLocalPlayer()
         {
-            // Find all PlayerHealth instances and return the local one
             PlayerHealth[] players = UnityEngine.Object.FindObjectsOfType<PlayerHealth>();
             foreach (var p in players)
             {
-                // PlayerAvatar is the local player component
                 PlayerAvatar avatar = p.GetComponent<PlayerAvatar>();
-                if (avatar != null && avatar.isLocal)
+                if (avatar != null && (bool)(_isLocalField?.GetValue(avatar) ?? false))
                     return p;
             }
             return null;
