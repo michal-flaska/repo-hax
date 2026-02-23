@@ -4,7 +4,7 @@ got bored one weekend and made this, enjoy
 
 ## how it looks
 ![alt text](image.png)
-![alt text](image-1.png)
+![alt text](image-1.png)s
 
 ## what is it
 
@@ -45,3 +45,11 @@ since there is a lot of people on github that report absolutely everything, i ha
 1. this is NOT a paid cheat, please dont resell it
 2. this is for edu purposes only and im not responsible for what u do with this shit
 3. its meant for friend lobbies for fun
+
+---
+
+## currently known bugs
+
+esp not drawing correctly (please mute the video before watching it, i was too lazy to remove the audio of the kids screaming)
+
+![alt text](esp-bug.mp4)
