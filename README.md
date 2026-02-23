@@ -22,14 +22,14 @@ features:
 - tp to extraction
 - upgrades menu (health/stamina/speed/strength/jump/range, takes effect next level)
 
-how to use:
+very easy to build and use, how to use:
 1. build the dll (release, .net 4.8, class library)
-2. update refs from `REPO_Data/Managed/`
+2. update project refs from `REPO_Data/Managed/`
 3. launch game, load into a level
 4. inject with [SMI](https://github.com/warbler/SharpMonoInjector) or any other mono injector
 5. press insert in game
 
-my non chatgpt note: written in an afternoon, probably buggy, esp untested in multiplayer, upgrade changes only kick in after level transition, probably wont be updating this shit, enjoy updating or porting it feats to your p2cs lads
+my non chatgpt note: written in an afternoon, probably buggy, esp still buggy, upgrade changes only kick in after level transition, probably wont be updating this shit for too long, enjoy updating or porting its feats to your p2cs lads
 
 note to myself:
 ```
