@@ -37,6 +37,7 @@ namespace cheat
         private bool _infiniteStamina = false;
 
         private bool _showUpgrades = false;
+        private bool _showTrolls = false;
         private int _upgradeValue = 10;
 
         // dnspy shit notes
@@ -48,6 +49,7 @@ namespace cheat
         // PlayerAvatar.steamID       - Token: 0x040020AC, internal string
         // PlayerAvatar.playerName    - Token: 0x040020AB, internal string
         // PlayerController.instance  - Token: 0x040021EE, public static
+        // PlayerController.cameraGameObject - Token: 0x04002232, public GameObject (actual render camera)
         // PlayerController.DebugNoTumble - Token: 0x04002228, public bool
         //   TumbleRequest checks this - if true and _playerInput is false, ragdoll is blocked
         // PlayerController.DebugEnergy - Token: 0x0400222A, public bool
@@ -71,10 +73,17 @@ namespace cheat
         //   playerUpgradeThrow      - Token: 0x04001CCA
         // PhysGrabObject.isValuable  - Token: 0x04001F0B, internal bool
         // PhysGrabObject.OverrideIndestructible(float time) - Token: 0x060013DD
-        //   sets impactDetector.isIndestructible = true for duration
-        //   called every frame on all isValuable objects to prevent breaking
-        // ExtractionPoint.safetySpawn - public Transform, safe teleport position near extraction
-        //   we find first non-locked ExtractionPoint and teleport player to safetySpawn
+        // ExtractionPoint.safetySpawn - public Transform
+        //   isLocked - public bool
+        // ChatManager.instance       - Token: 0x040024CC, public static
+        // ChatManager.ForceSendMessage(string _message) - Token: 0x06001681, public
+        //   sets chatMessage then calls ForceConfirmChat() -> StateSet(Send)
+        //   only works in multiplayer - Update() returns early in singleplayer
+        // chat tricks (TMP rich text parsed by the game):
+        //   flashbang: <size=-111111>text   - sets text size to near-zero causing screen flash
+        //   big text:  <size=999>text       - massive text on everyone's screen
+        //   invisible: <alpha=#00>text      - sends invisible message
+        //   rainbow:   <gradient>text       - colored gradient text
         private static readonly FieldInfo _healthField = typeof(PlayerHealth)
             .GetField("health", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
@@ -142,6 +151,7 @@ namespace cheat
                 _espStyle.normal.textColor = Color.green;
                 _espStyle.fontStyle = FontStyle.Bold;
                 _espStyle.fontSize = 14;
+                _espStyle.alignment = TextAnchor.MiddleCenter; // should fix the esp draw bug
             }
 
             if (_esp)
@@ -149,76 +159,185 @@ namespace cheat
 
             if (!_menuOpen) return;
 
-            if (!_showUpgrades)
+            if (!_showUpgrades && !_showTrolls)
+                DrawMainMenu();
+            else if (_showUpgrades)
+                DrawUpgradesMenu();
+            else if (_showTrolls)
+                DrawTrollMenu();
+        }
+
+        /*
+        private Camera GetGameCamera()
+        {
+            var pc = PlayerController.instance;
+            if (pc != null)
             {
-                UnityEngine.GUI.Box(new Rect(20, 20, 220, 300), "REPO Cheat");
-
-                _godMode = UnityEngine.GUI.Toggle(new Rect(30, 50, 180, 25), _godMode, "God Mode");
-                _speedHack = UnityEngine.GUI.Toggle(new Rect(30, 80, 180, 25), _speedHack, "Speed Multiplier");
-                _noRagdoll = UnityEngine.GUI.Toggle(new Rect(30, 110, 180, 25), _noRagdoll, "No Ragdoll");
-                _noBreak = UnityEngine.GUI.Toggle(new Rect(30, 140, 180, 25), _noBreak, "No Break");
-                _esp = UnityEngine.GUI.Toggle(new Rect(30, 170, 180, 25), _esp, "Player ESP");
-                _infiniteStamina = UnityEngine.GUI.Toggle(new Rect(30, 200, 180, 25), _infiniteStamina, "Infinite Stamina");
-
-                if (_speedHack)
+                // try local camera first (first-person render camera)
+                if (pc.cameraGameObjectLocal != null)
                 {
-                    _speedMultiplier = UnityEngine.GUI.HorizontalSlider(new Rect(30, 228, 160, 20), _speedMultiplier, 1f, 5f);
-                    UnityEngine.GUI.Label(new Rect(30, 243, 180, 20), $"x{_speedMultiplier:F1} speed");
+                    var cam = pc.cameraGameObjectLocal.GetComponentInChildren<Camera>();
+                    if (cam != null) return cam;
                 }
-
-                if (UnityEngine.GUI.Button(new Rect(30, 263, 85, 28), "Upgrades"))
-                    _showUpgrades = true;
-
-                if (UnityEngine.GUI.Button(new Rect(125, 263, 85, 28), "TP Extract"))
-                    TeleportToExtraction();
+                // fallback to main camera object
+                if (pc.cameraGameObject != null)
+                {
+                    var cam = pc.cameraGameObject.GetComponentInChildren<Camera>();
+                    if (cam != null) return cam;
+                }
             }
-            else
+            return Camera.main;
+        }
+        */
+
+        private Camera GetGameCamera()
+        {
+            var pc = PlayerController.instance;
+            if (pc != null && pc.cameraGameObjectLocal != null)
             {
-                UnityEngine.GUI.Box(new Rect(20, 20, 220, 320), "Upgrades");
-
-                UnityEngine.GUI.Label(new Rect(30, 50, 80, 20), "Set value:");
-                if (UnityEngine.GUI.Button(new Rect(110, 48, 30, 22), "0")) _upgradeValue = 0;
-                if (UnityEngine.GUI.Button(new Rect(145, 48, 30, 22), "10")) _upgradeValue = 10;
-                if (UnityEngine.GUI.Button(new Rect(180, 48, 30, 22), "50")) _upgradeValue = 50;
-
-                UnityEngine.GUI.Label(new Rect(30, 75, 180, 20), $"Current: {_upgradeValue}");
-
-                int btnY = 100;
-                int btnH = 28;
-                int gap = 33;
-
-                if (UnityEngine.GUI.Button(new Rect(30, btnY, 180, btnH), "Health")) SetUpgrade("playerUpgradeHealth");
-                if (UnityEngine.GUI.Button(new Rect(30, btnY + gap, 180, btnH), "Stamina")) SetUpgrade("playerUpgradeStamina");
-                if (UnityEngine.GUI.Button(new Rect(30, btnY + gap * 2, 180, btnH), "Speed")) SetUpgrade("playerUpgradeSpeed");
-                if (UnityEngine.GUI.Button(new Rect(30, btnY + gap * 3, 180, btnH), "Strength")) SetUpgrade("playerUpgradeStrength");
-                if (UnityEngine.GUI.Button(new Rect(30, btnY + gap * 4, 180, btnH), "Jump")) SetUpgrade("playerUpgradeExtraJump");
-                if (UnityEngine.GUI.Button(new Rect(30, btnY + gap * 5, 180, btnH), "Range")) SetUpgrade("playerUpgradeRange");
-
-                if (UnityEngine.GUI.Button(new Rect(30, 290, 180, 25), "Back"))
-                    _showUpgrades = false;
+                var cam = pc.cameraGameObjectLocal.GetComponentInChildren<Camera>();
+                if (cam != null) return cam;
+                cam = pc.cameraGameObject.GetComponentInChildren<Camera>();
+                if (cam != null) return cam;
             }
+            // last resort - find any non-orthographic enabled camera
+            foreach (var cam in Camera.allCameras)
+            {
+                if (cam.enabled && !cam.orthographic && cam.gameObject.activeInHierarchy)
+                    return cam;
+            }
+            return Camera.main;
+        }
+
+        private bool WorldToScreen(Camera cam, Vector3 worldPos, out Vector2 screenPos)
+        {
+            screenPos = Vector2.zero;
+            Vector3 vp = cam.WorldToViewportPoint(worldPos);
+            if (vp.z < 0) return false;
+            // viewport is 0-1, convert to screen pixels
+            screenPos = new Vector2(vp.x * Screen.width, (1f - vp.y) * Screen.height);
+            return true;
         }
 
         private void DrawESP()
         {
-            var cam = Camera.main;
+            var cam = GetGameCamera();
             if (cam == null) return;
+
+            UnityEngine.GUI.Label(new Rect(20, Screen.height - 40, 400, 20), $"CAM: {cam?.name ?? "null"} pos:{cam?.transform.position}");      
 
             foreach (var avatar in UnityEngine.Object.FindObjectsOfType<PlayerAvatar>())
             {
                 bool isLocal = (bool)(_isLocalField?.GetValue(avatar) ?? false);
                 if (isLocal) continue;
 
-                // Unity screen origin is bottom-left, GUI is top-left so flip Y
-                Vector3 screenPos = cam.WorldToScreenPoint(avatar.transform.position + Vector3.up * 1.5f);
+                Vector3 worldPos = avatar.transform.position + Vector3.up * 1.0f;
+                Vector3 screenPos = cam.WorldToScreenPoint(worldPos);
                 if (screenPos.z < 0) continue;
 
-                float screenY = Screen.height - screenPos.y;
+                float sx = screenPos.x;
+                float sy = Screen.height - screenPos.y;
+
                 string name = _playerNameField?.GetValue(avatar) as string ?? "Player";
                 int hp = avatar.playerHealth != null ? (int)(_healthField?.GetValue(avatar.playerHealth) ?? 0) : 0;
-                float distance = Vector3.Distance(PlayerAvatar.instance?.transform.position ?? Vector3.zero, avatar.transform.position);
+                float distance = Vector3.Distance(
+                    PlayerAvatar.instance?.transform.position ?? Vector3.zero,
+                    avatar.transform.position
+                );
 
-                UnityEngine.GUI.Label(new Rect(screenPos.x - 30, screenY - 10, 120, 60), $"{name}\nHP: {hp}\n{distance:F0}m", _espStyle);
+                float w = 120f;
+                float h = 60f;
+
+                if (!WorldToScreen(cam, avatar.transform.position + Vector3.up * 1.0f, out Vector2 sp)) continue;
+                UnityEngine.GUI.Label(new Rect(sp.x - 60f, sp.y - 30f, 120f, 60f), $"{name}\nHP: {hp}\n{distance:F0}m", _espStyle);
+            }
+        }
+
+        private void DrawMainMenu()
+        {
+            UnityEngine.GUI.Box(new Rect(20, 20, 220, 310), "REPO Cheat");
+
+            _godMode = UnityEngine.GUI.Toggle(new Rect(30, 50, 180, 25), _godMode, "God Mode");
+            _speedHack = UnityEngine.GUI.Toggle(new Rect(30, 80, 180, 25), _speedHack, "Speed Multiplier");
+            _noRagdoll = UnityEngine.GUI.Toggle(new Rect(30, 110, 180, 25), _noRagdoll, "No Ragdoll");
+            _noBreak = UnityEngine.GUI.Toggle(new Rect(30, 140, 180, 25), _noBreak, "No Break");
+            _esp = UnityEngine.GUI.Toggle(new Rect(30, 170, 180, 25), _esp, "Player ESP");
+            _infiniteStamina = UnityEngine.GUI.Toggle(new Rect(30, 200, 180, 25), _infiniteStamina, "Infinite Stamina");
+
+            if (_speedHack)
+            {
+                _speedMultiplier = UnityEngine.GUI.HorizontalSlider(new Rect(30, 228, 160, 20), _speedMultiplier, 1f, 5f);
+                UnityEngine.GUI.Label(new Rect(30, 243, 180, 20), $"x{_speedMultiplier:F1} speed");
+            }
+
+            if (UnityEngine.GUI.Button(new Rect(30, 268, 85, 28), "Upgrades"))
+                _showUpgrades = true;
+
+            if (UnityEngine.GUI.Button(new Rect(125, 268, 85, 28), "TP Extract"))
+                TeleportToExtraction();
+
+            if (UnityEngine.GUI.Button(new Rect(30, 300, 180, 25), "Troll Chat"))
+                _showTrolls = true;
+        }
+
+        private void DrawUpgradesMenu()
+        {
+            UnityEngine.GUI.Box(new Rect(20, 20, 220, 320), "Upgrades");
+
+            UnityEngine.GUI.Label(new Rect(30, 50, 80, 20), "Set value:");
+            if (UnityEngine.GUI.Button(new Rect(110, 48, 30, 22), "0")) _upgradeValue = 0;
+            if (UnityEngine.GUI.Button(new Rect(145, 48, 30, 22), "10")) _upgradeValue = 10;
+            if (UnityEngine.GUI.Button(new Rect(180, 48, 30, 22), "50")) _upgradeValue = 50;
+
+            UnityEngine.GUI.Label(new Rect(30, 75, 180, 20), $"Current: {_upgradeValue}");
+
+            int btnY = 100;
+            int btnH = 28;
+            int gap = 33;
+
+            if (UnityEngine.GUI.Button(new Rect(30, btnY, 180, btnH), "Health")) SetUpgrade("playerUpgradeHealth");
+            if (UnityEngine.GUI.Button(new Rect(30, btnY + gap, 180, btnH), "Stamina")) SetUpgrade("playerUpgradeStamina");
+            if (UnityEngine.GUI.Button(new Rect(30, btnY + gap * 2, 180, btnH), "Speed")) SetUpgrade("playerUpgradeSpeed");
+            if (UnityEngine.GUI.Button(new Rect(30, btnY + gap * 3, 180, btnH), "Strength")) SetUpgrade("playerUpgradeStrength");
+            if (UnityEngine.GUI.Button(new Rect(30, btnY + gap * 4, 180, btnH), "Jump")) SetUpgrade("playerUpgradeExtraJump");
+            if (UnityEngine.GUI.Button(new Rect(30, btnY + gap * 5, 180, btnH), "Range")) SetUpgrade("playerUpgradeRange");
+
+            if (UnityEngine.GUI.Button(new Rect(30, 290, 180, 25), "Back"))
+                _showUpgrades = false;
+        }
+
+        private void DrawTrollMenu()
+        {
+            UnityEngine.GUI.Box(new Rect(20, 20, 220, 280), "Troll Chat");
+            UnityEngine.GUI.Label(new Rect(30, 48, 180, 20), "multiplayer only");
+
+            int btnY = 70;
+            int btnH = 28;
+            int gap = 33;
+
+            if (UnityEngine.GUI.Button(new Rect(30, btnY, 180, btnH), "Flashbang")) SendChat("<size=-111111>hi");
+            if (UnityEngine.GUI.Button(new Rect(30, btnY + gap, 180, btnH), "Big Text")) SendChat("<size=999>HELLO");
+            if (UnityEngine.GUI.Button(new Rect(30, btnY + gap * 2, 180, btnH), "Invisible")) SendChat("<alpha=#00>ghost message");
+            if (UnityEngine.GUI.Button(new Rect(30, btnY + gap * 3, 180, btnH), "Spam Hello")) StartCoroutine(SpamChat("hello", 3));
+            if (UnityEngine.GUI.Button(new Rect(30, btnY + gap * 4, 180, btnH), "Max Chaos")) SendChat("<size=-111111><size=999>CHAOS");
+            if (UnityEngine.GUI.Button(new Rect(30, btnY + gap * 5, 180, btnH), "Custom...")) SendChat("<size=-111111>custom troll");
+
+            if (UnityEngine.GUI.Button(new Rect(30, 248, 180, 25), "Back"))
+                _showTrolls = false;
+        }
+
+        private void SendChat(string message)
+        {
+            if (ChatManager.instance == null) return;
+            ChatManager.instance.ForceSendMessage(message);
+        }
+
+        private System.Collections.IEnumerator SpamChat(string message, int times)
+        {
+            for (int i = 0; i < times; i++)
+            {
+                SendChat(message);
+                yield return new WaitForSeconds(1.1f);
             }
         }
 
@@ -232,14 +351,10 @@ namespace cheat
             {
                 if (ep.isLocked) continue;
 
-                if (ep.safetySpawn != null)
-                {
-                    pc.transform.position = ep.safetySpawn.position;
-                    return;
-                }
-
                 // fallback to extraction point itself if no safetySpawn
-                pc.transform.position = ep.transform.position + Vector3.up;
+                pc.transform.position = ep.safetySpawn != null
+                    ? ep.safetySpawn.position
+                    : ep.transform.position + Vector3.up;
                 return;
             }
         }
