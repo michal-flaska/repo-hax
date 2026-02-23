@@ -49,6 +49,7 @@ namespace cheat
         // PlayerAvatar.steamID       - Token: 0x040020AC, internal string
         // PlayerAvatar.playerName    - Token: 0x040020AB, internal string
         // PlayerController.instance  - Token: 0x040021EE, public static
+        // PlayerController.cameraGameObject - Token: 0x04002232, public GameObject (actual render camera)
         // PlayerController.DebugNoTumble - Token: 0x04002228, public bool
         //   TumbleRequest checks this - if true and _playerInput is false, ragdoll is blocked
         // PlayerController.DebugEnergy - Token: 0x0400222A, public bool
@@ -165,6 +166,49 @@ namespace cheat
                 DrawTrollMenu();
         }
 
+        private Camera GetGameCamera()
+        {
+            // PlayerController.cameraGameObject is the actual player view camera
+            // Camera.main may be a different camera and will cause W2S offset at distance
+            var pc = PlayerController.instance;
+            if (pc != null && pc.cameraGameObject != null)
+            {
+                var cam = pc.cameraGameObject.GetComponent<Camera>();
+                if (cam != null) return cam;
+            }
+            return Camera.main;
+        }
+
+        private void DrawESP()
+        {
+            var cam = GetGameCamera();
+            if (cam == null) return;
+
+            foreach (var avatar in UnityEngine.Object.FindObjectsOfType<PlayerAvatar>())
+            {
+                bool isLocal = (bool)(_isLocalField?.GetValue(avatar) ?? false);
+                if (isLocal) continue;
+
+                Vector3 worldPos = avatar.transform.position + Vector3.up * 1.0f;
+                Vector3 screenPos = cam.WorldToScreenPoint(worldPos);
+                if (screenPos.z < 0) continue;
+
+                float sx = screenPos.x;
+                float sy = Screen.height - screenPos.y;
+
+                string name = _playerNameField?.GetValue(avatar) as string ?? "Player";
+                int hp = avatar.playerHealth != null ? (int)(_healthField?.GetValue(avatar.playerHealth) ?? 0) : 0;
+                float distance = Vector3.Distance(
+                    PlayerAvatar.instance?.transform.position ?? Vector3.zero,
+                    avatar.transform.position
+                );
+
+                float w = 120f;
+                float h = 60f;
+                UnityEngine.GUI.Label(new Rect(sx - w / 2f, sy - h / 2f, w, h), $"{name}\nHP: {hp}\n{distance:F0}m", _espStyle);
+            }
+        }
+
         private void DrawMainMenu()
         {
             UnityEngine.GUI.Box(new Rect(20, 20, 220, 310), "REPO Cheat");
@@ -227,28 +271,12 @@ namespace cheat
             int btnH = 28;
             int gap = 33;
 
-            // <size=-111111> causes TMP to render at near-zero size, creating a flashbang effect
-            if (UnityEngine.GUI.Button(new Rect(30, btnY, 180, btnH), "Flashbang"))
-                SendChat("<size=-111111>hi");
-
-            // oversized text renders huge on everyone's screen
-            if (UnityEngine.GUI.Button(new Rect(30, btnY + gap, 180, btnH), "Big Text"))
-                SendChat("<size=999>HELLO");
-
-            // alpha=00 makes text invisible but still sent
-            if (UnityEngine.GUI.Button(new Rect(30, btnY + gap * 2, 180, btnH), "Invisible"))
-                SendChat("<alpha=#00>ghost message");
-
-            // spam the chat 3 times (spamTimer is 1s so we bypass via ForceSendMessage calls)
-            if (UnityEngine.GUI.Button(new Rect(30, btnY + gap * 3, 180, btnH), "Spam Hello"))
-                StartCoroutine(SpamChat("hello", 3));
-
-            // combine flashbang + big text for max chaos
-            if (UnityEngine.GUI.Button(new Rect(30, btnY + gap * 4, 180, btnH), "Max Chaos"))
-                SendChat("<size=-111111><size=999>CHAOS");
-
-            if (UnityEngine.GUI.Button(new Rect(30, btnY + gap * 5, 180, btnH), "Custom..."))
-                SendChat("<size=-111111>custom troll");
+            if (UnityEngine.GUI.Button(new Rect(30, btnY, 180, btnH), "Flashbang")) SendChat("<size=-111111>hi");
+            if (UnityEngine.GUI.Button(new Rect(30, btnY + gap, 180, btnH), "Big Text")) SendChat("<size=999>HELLO");
+            if (UnityEngine.GUI.Button(new Rect(30, btnY + gap * 2, 180, btnH), "Invisible")) SendChat("<alpha=#00>ghost message");
+            if (UnityEngine.GUI.Button(new Rect(30, btnY + gap * 3, 180, btnH), "Spam Hello")) StartCoroutine(SpamChat("hello", 3));
+            if (UnityEngine.GUI.Button(new Rect(30, btnY + gap * 4, 180, btnH), "Max Chaos")) SendChat("<size=-111111><size=999>CHAOS");
+            if (UnityEngine.GUI.Button(new Rect(30, btnY + gap * 5, 180, btnH), "Custom...")) SendChat("<size=-111111>custom troll");
 
             if (UnityEngine.GUI.Button(new Rect(30, 248, 180, 25), "Back"))
                 _showTrolls = false;
@@ -265,42 +293,7 @@ namespace cheat
             for (int i = 0; i < times; i++)
             {
                 SendChat(message);
-                yield return new WaitForSeconds(1.1f); // just over spamTimer (1s)
-            }
-        }
-
-        private void DrawESP()
-        {
-            var cam = Camera.main;
-            if (cam == null) return;
-
-            foreach (var avatar in UnityEngine.Object.FindObjectsOfType<PlayerAvatar>())
-            {
-                bool isLocal = (bool)(_isLocalField?.GetValue(avatar) ?? false);
-                if (isLocal) continue;
-
-                // project chest height position to screen
-                Vector3 worldPos = avatar.transform.position + Vector3.up * 1.0f;
-                Vector3 screenPos = cam.WorldToScreenPoint(worldPos);
-                if (screenPos.z < 0) continue;
-
-                // Unity Y is bottom-up, GUI is top-down
-                float sx = screenPos.x;
-                float sy = Screen.height - screenPos.y;
-
-                string name = _playerNameField?.GetValue(avatar) as string ?? "Player";
-                int hp = avatar.playerHealth != null ? (int)(_healthField?.GetValue(avatar.playerHealth) ?? 0) : 0;
-                float distance = Vector3.Distance(
-                    PlayerAvatar.instance?.transform.position ?? Vector3.zero,
-                    avatar.transform.position
-                );
-
-                string label = $"{name}\nHP: {hp}\n{distance:F0}m";
-
-                // center the label on the projected point
-                float w = 120f;
-                float h = 60f;
-                UnityEngine.GUI.Label(new Rect(sx - w / 2f, sy - h / 2f, w, h), label, _espStyle);
+                yield return new WaitForSeconds(1.1f);
             }
         }
 
