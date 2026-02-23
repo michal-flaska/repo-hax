@@ -50,6 +50,5 @@ since there is a lot of people on github that report absolutely everything, i ha
 
 ## currently known bugs
 
-esp not drawing correctly (please mute the video before watching it, i was too lazy to remove the audio of the kids screaming)
-
-<video src="./esp-bug.mp4" controls width="auto"></video>
+esp not drawing correctly
+![alt text](image-2.png)
