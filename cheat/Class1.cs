@@ -279,17 +279,28 @@ namespace cheat
                 bool isLocal = (bool)(_isLocalField?.GetValue(avatar) ?? false);
                 if (isLocal) continue;
 
-                // Unity screen origin is bottom-left, GUI is top-left so flip Y
-                Vector3 screenPos = cam.WorldToScreenPoint(avatar.transform.position + Vector3.up * 1.5f);
+                // project chest height position to screen
+                Vector3 worldPos = avatar.transform.position + Vector3.up * 1.0f;
+                Vector3 screenPos = cam.WorldToScreenPoint(worldPos);
                 if (screenPos.z < 0) continue;
 
-                float screenY = Screen.height - screenPos.y;
+                // Unity Y is bottom-up, GUI is top-down
+                float sx = screenPos.x;
+                float sy = Screen.height - screenPos.y;
+
                 string name = _playerNameField?.GetValue(avatar) as string ?? "Player";
                 int hp = avatar.playerHealth != null ? (int)(_healthField?.GetValue(avatar.playerHealth) ?? 0) : 0;
-                float distance = Vector3.Distance(PlayerAvatar.instance?.transform.position ?? Vector3.zero, avatar.transform.position);
+                float distance = Vector3.Distance(
+                    PlayerAvatar.instance?.transform.position ?? Vector3.zero,
+                    avatar.transform.position
+                );
 
-                // center the 120px wide label on the screen position
-                UnityEngine.GUI.Label(new Rect(screenPos.x - 60, screenY - 10, 120, 60), $"{name}\nHP: {hp}\n{distance:F0}m", _espStyle);
+                string label = $"{name}\nHP: {hp}\n{distance:F0}m";
+
+                // center the label on the projected point
+                float w = 120f;
+                float h = 60f;
+                UnityEngine.GUI.Label(new Rect(sx - w / 2f, sy - h / 2f, w, h), label, _espStyle);
             }
         }
 
