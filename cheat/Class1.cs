@@ -288,7 +288,8 @@ namespace cheat
                 int hp = avatar.playerHealth != null ? (int)(_healthField?.GetValue(avatar.playerHealth) ?? 0) : 0;
                 float distance = Vector3.Distance(PlayerAvatar.instance?.transform.position ?? Vector3.zero, avatar.transform.position);
 
-                UnityEngine.GUI.Label(new Rect(screenPos.x - 30, screenY - 10, 120, 60), $"{name}\nHP: {hp}\n{distance:F0}m", _espStyle);
+                // center the 120px wide label on the screen position
+                UnityEngine.GUI.Label(new Rect(screenPos.x - 60, screenY - 10, 120, 60), $"{name}\nHP: {hp}\n{distance:F0}m", _espStyle);
             }
         }
 
