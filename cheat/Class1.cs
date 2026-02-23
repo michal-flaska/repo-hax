@@ -151,6 +151,7 @@ namespace cheat
                 _espStyle.normal.textColor = Color.green;
                 _espStyle.fontStyle = FontStyle.Bold;
                 _espStyle.fontSize = 14;
+                _espStyle.alignment = TextAnchor.MiddleCenter; // should fix the esp draw bug
             }
 
             if (_esp)
@@ -208,6 +209,16 @@ namespace cheat
             return Camera.main;
         }
 
+        private bool WorldToScreen(Camera cam, Vector3 worldPos, out Vector2 screenPos)
+        {
+            screenPos = Vector2.zero;
+            Vector3 vp = cam.WorldToViewportPoint(worldPos);
+            if (vp.z < 0) return false;
+            // viewport is 0-1, convert to screen pixels
+            screenPos = new Vector2(vp.x * Screen.width, (1f - vp.y) * Screen.height);
+            return true;
+        }
+
         private void DrawESP()
         {
             var cam = GetGameCamera();
@@ -236,7 +247,9 @@ namespace cheat
 
                 float w = 120f;
                 float h = 60f;
-                UnityEngine.GUI.Label(new Rect(sx - w / 2f, sy - h / 2f, w, h), $"{name}\nHP: {hp}\n{distance:F0}m", _espStyle);
+
+                if (!WorldToScreen(cam, avatar.transform.position + Vector3.up * 1.0f, out Vector2 sp)) continue;
+                UnityEngine.GUI.Label(new Rect(sp.x - 60f, sp.y - 30f, 120f, 60f), $"{name}\nHP: {hp}\n{distance:F0}m", _espStyle);
             }
         }
 
