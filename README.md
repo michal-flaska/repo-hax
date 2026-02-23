@@ -52,4 +52,4 @@ since there is a lot of people on github that report absolutely everything, i ha
 
 esp not drawing correctly (please mute the video before watching it, i was too lazy to remove the audio of the kids screaming)
 
-![alt text](esp-bug.mp4)
+<video src="./esp-bug.mp4" controls width="auto"></video>
