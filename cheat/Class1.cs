@@ -166,15 +166,44 @@ namespace cheat
                 DrawTrollMenu();
         }
 
+        /*
         private Camera GetGameCamera()
         {
-            // PlayerController.cameraGameObject is the actual player view camera
-            // Camera.main may be a different camera and will cause W2S offset at distance
             var pc = PlayerController.instance;
-            if (pc != null && pc.cameraGameObject != null)
+            if (pc != null)
             {
-                var cam = pc.cameraGameObject.GetComponent<Camera>();
+                // try local camera first (first-person render camera)
+                if (pc.cameraGameObjectLocal != null)
+                {
+                    var cam = pc.cameraGameObjectLocal.GetComponentInChildren<Camera>();
+                    if (cam != null) return cam;
+                }
+                // fallback to main camera object
+                if (pc.cameraGameObject != null)
+                {
+                    var cam = pc.cameraGameObject.GetComponentInChildren<Camera>();
+                    if (cam != null) return cam;
+                }
+            }
+            return Camera.main;
+        }
+        */
+
+        private Camera GetGameCamera()
+        {
+            var pc = PlayerController.instance;
+            if (pc != null && pc.cameraGameObjectLocal != null)
+            {
+                var cam = pc.cameraGameObjectLocal.GetComponentInChildren<Camera>();
                 if (cam != null) return cam;
+                cam = pc.cameraGameObject.GetComponentInChildren<Camera>();
+                if (cam != null) return cam;
+            }
+            // last resort - find any non-orthographic enabled camera
+            foreach (var cam in Camera.allCameras)
+            {
+                if (cam.enabled && !cam.orthographic && cam.gameObject.activeInHierarchy)
+                    return cam;
             }
             return Camera.main;
         }
@@ -183,6 +212,8 @@ namespace cheat
         {
             var cam = GetGameCamera();
             if (cam == null) return;
+
+            UnityEngine.GUI.Label(new Rect(20, Screen.height - 40, 400, 20), $"CAM: {cam?.name ?? "null"} pos:{cam?.transform.position}");      
 
             foreach (var avatar in UnityEngine.Object.FindObjectsOfType<PlayerAvatar>())
             {
