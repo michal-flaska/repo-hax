@@ -16,6 +16,7 @@ namespace cheat
         public bool NoBreak = false;
         public bool InfiniteStamina = false;
         public bool RainbowColor = false;
+        public float RainbowSpeed = 0.5f; // seconds per color change
 
         // esp toggles
         public bool EspPlayers = false;
@@ -186,7 +187,8 @@ namespace cheat
             if (RainbowColor && PlayerAvatar.instance != null && AssetManager.instance != null)
             {
                 _colorTimer += Time.deltaTime;
-                if (_colorTimer >= 0.5f)
+                // if (_colorTimer >= 0.25f) // seconds
+                if (_colorTimer >= RainbowSpeed)
                 {
                     _colorTimer = 0f;
                     int count = AssetManager.instance.playerColors.Count;

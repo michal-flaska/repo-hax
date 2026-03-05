@@ -17,6 +17,12 @@ namespace cheat
             c.NoBreak = GUI.Toggle(new Rect(30, y += 28, 200, 25), c.NoBreak, "No Break (host only)");
             c.InfiniteStamina = GUI.Toggle(new Rect(30, y += 28, 200, 25), c.InfiniteStamina, "Infinite Stamina");
             c.RainbowColor = GUI.Toggle(new Rect(30, y += 28, 200, 25), c.RainbowColor, "Rainbow Color");
+            if (c.RainbowColor)
+            {
+                c.RainbowSpeed = GUI.HorizontalSlider(new Rect(30, y += 24, 170, 20), c.RainbowSpeed, 0.1f, 2f);
+                GUI.Label(new Rect(30, y += 18, 200, 20), $"Speed: {c.RainbowSpeed:F1}s");
+                y += 4;
+            }
 
             if (c.SpeedHack)
             {
