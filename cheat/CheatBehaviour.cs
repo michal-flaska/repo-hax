@@ -33,6 +33,10 @@ namespace cheat
         public bool DistanceFilterLoot = true;
         public bool DistanceFilterPlayers = false;
 
+        // misc features
+        public bool HighlightBestLoot = false;
+        public bool EnemyNearbyWarning = false;
+
         // menu state
         public bool MenuOpen = false;
         public bool ShowUpgrades = false;

@@ -10,6 +10,8 @@ namespace cheat
         private static GUIStyle _style;
         private static GUIStyle _overlayStyle;
 
+        private static readonly Color _hotColor = new Color(1f, 0f, 0.47f); // #ff0077
+
         public static void Draw(CheatBehaviour c)
         {
             var cam = Camera.main;
@@ -40,6 +42,7 @@ namespace cheat
             if (c.EspEnemies) DrawEnemies(c, cam);
             if (c.EspLoot) DrawLoot(c, cam);
             if (c.EspExtraction) DrawExtractions(c, cam);
+            if (c.EnemyNearbyWarning) DrawEnemyWarning(c);
 
             DrawLootOverlay(c);
         }
@@ -123,6 +126,19 @@ namespace cheat
 
         private static void DrawLoot(CheatBehaviour c, Camera cam)
         {
+            // find most valuable item first if highlight is on
+            ValuableObject bestItem = null;
+            if (c.HighlightBestLoot)
+            {
+                float best = float.MinValue;
+                foreach (var item in c.Valuables)
+                {
+                    if (item == null) continue;
+                    float v = (float)(CheatBehaviour.DollarValueField?.GetValue(item) ?? 0f);
+                    if (v > best) { best = v; bestItem = item; }
+                }
+            }
+
             foreach (var item in c.Valuables)
             {
                 if (item == null) continue;
@@ -138,8 +154,9 @@ namespace cheat
 
                 float price = (float)(CheatBehaviour.DollarValueField?.GetValue(item) ?? 0f);
                 string label = CleanName(item.name) + (c.EspLootPrice ? $"\n${price:F0}" : "");
+                Color col = (c.HighlightBestLoot && item == bestItem) ? _hotColor : Color.yellow;
 
-                DrawLabel(screenPos, label, Color.yellow);
+                DrawLabel(screenPos, label, col);
             }
         }
 
@@ -153,9 +170,38 @@ namespace cheat
                 if (!IsOnScreen(screenPos)) continue;
 
                 Color col = ep.isLocked ? Color.red : Color.green;
-                string label = ep.isLocked ? "Extraction [LOCKED]" : "Extraction [OPEN]";
+                string label = ep.isLocked ? "Extraction [LOCKED]" : "Extraction";
 
                 DrawLabel(screenPos, label, col);
+            }
+        }
+
+        // shows a simple "! ENEMY NEARBY !" banner when any enemy is within 10m
+        private static void DrawEnemyWarning(CheatBehaviour c)
+        {
+            if (c.LocalPlayer == null) return;
+
+            foreach (var enemy in c.Enemies)
+            {
+                if (enemy == null) continue;
+
+                EnemyHealth eHealth = enemy.GetComponentInParent<EnemyParent>()?.GetComponentInChildren<EnemyHealth>();
+                if (eHealth == null || eHealth.health <= 0) continue;
+
+                float dist = Vector3.Distance(c.LocalPlayer.transform.position, enemy.CenterTransform.position);
+                if (dist > 10f) continue;
+
+                // draw centered at bottom of screen
+                string text = "! ENEMY NEARBY !";
+                Vector2 size = _overlayStyle.CalcSize(new GUIContent(text));
+                float x = (Screen.width - size.x) / 2f;
+                float y = Screen.height - size.y - 40f;
+
+                Color prev = GUI.color;
+                GUI.color = new Color(1f, 0.15f, 0.15f);
+                GUI.Label(new Rect(x, y, size.x, size.y), text, _overlayStyle);
+                GUI.color = prev;
+                return; // one warning is enough
             }
         }
 

@@ -41,5 +41,25 @@ namespace cheat
             if (string.IsNullOrEmpty(steamID)) return;
             StatsManager.instance.DictionaryUpdateValue(dictName, steamID, c.UpgradeValue);
         }
+
+        // blasts all valuables away from the player using rigidbody force
+        public static void YeetValuables(CheatBehaviour c)
+        {
+            var pc = PlayerController.instance;
+            if (pc == null) return;
+
+            foreach (var item in c.Valuables)
+            {
+                if (item == null) continue;
+
+                var rb = item.GetComponent<Rigidbody>();
+                if (rb == null) continue;
+
+                Vector3 dir = (item.transform.position - pc.transform.position).normalized;
+                // upward angle so items fly out and up, not just sideways
+                dir = (dir + Vector3.up * 0.5f).normalized;
+                rb.AddForce(dir * 25f, ForceMode.Impulse);
+            }
+        }
     }
 }

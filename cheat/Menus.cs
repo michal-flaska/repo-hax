@@ -6,7 +6,7 @@ namespace cheat
     {
         public static void DrawMain(CheatBehaviour c)
         {
-            GUI.Box(new Rect(20, 20, 240, 470), "REPO Cheat");
+            GUI.Box(new Rect(20, 20, 240, 530), "REPO Cheat");
 
             int y = 50;
 
@@ -45,11 +45,17 @@ namespace cheat
             c.DistanceFilterLoot = GUI.Toggle(new Rect(30, y += 24, 200, 22), c.DistanceFilterLoot, "Filter Loot");
             c.DistanceFilterPlayers = GUI.Toggle(new Rect(30, y += 24, 200, 22), c.DistanceFilterPlayers, "Filter Players");
 
+            // misc
+            GUI.Label(new Rect(30, y += 30, 200, 18), "── Misc ──");
+            c.HighlightBestLoot = GUI.Toggle(new Rect(30, y += 22, 200, 22), c.HighlightBestLoot, "Highlight Best Loot");
+            c.EnemyNearbyWarning = GUI.Toggle(new Rect(30, y += 26, 200, 22), c.EnemyNearbyWarning, "Enemy Nearby Warning");
+
             // buttons
             y += 30;
             if (GUI.Button(new Rect(30, y, 100, 28), "Upgrades")) c.ShowUpgrades = true;
             if (GUI.Button(new Rect(140, y, 90, 28), "TP Extract")) Helpers.TeleportToExtraction();
-            if (GUI.Button(new Rect(30, y + 33, 200, 25), "Troll Chat")) c.ShowTrolls = true;
+            if (GUI.Button(new Rect(30, y + 33, 100, 25), "Troll Chat")) c.ShowTrolls = true;
+            if (GUI.Button(new Rect(140, y + 33, 90, 25), "Yeet Loot")) Helpers.YeetValuables(c);
         }
 
         public static void DrawUpgrades(CheatBehaviour c)
