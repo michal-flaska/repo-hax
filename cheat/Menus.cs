@@ -6,7 +6,7 @@ namespace cheat
     {
         public static void DrawMain(CheatBehaviour c)
         {
-            GUI.Box(new Rect(20, 20, 240, 530), "REPO Cheat");
+            GUI.Box(new Rect(20, 20, 240, 570), "REPO Cheat");
 
             int y = 50;
 
@@ -49,6 +49,17 @@ namespace cheat
             GUI.Label(new Rect(30, y += 30, 200, 18), "── Misc ──");
             c.HighlightBestLoot = GUI.Toggle(new Rect(30, y += 22, 200, 22), c.HighlightBestLoot, "Highlight Best Loot");
             c.EnemyNearbyWarning = GUI.Toggle(new Rect(30, y += 26, 200, 22), c.EnemyNearbyWarning, "Enemy Nearby Warning");
+            c.FilterLootByValue = GUI.Toggle(new Rect(30, y += 26, 200, 22), c.FilterLootByValue, "Min Loot Value Filter");
+            if (c.FilterLootByValue)
+            {
+                c.MinLootValue = GUI.HorizontalSlider(new Rect(30, y += 24, 180, 20), c.MinLootValue, 0f, 1000f);
+                GUI.Label(new Rect(30, y += 18, 200, 20), $"Min: ${c.MinLootValue:F0}");
+                y += 4;
+            }
+            else
+            {
+                y += 4;
+            }
 
             // buttons
             y += 30;

@@ -149,10 +149,12 @@ namespace cheat
 
                 if (c.DistanceFilterLoot && dist > c.MaxDistance) continue;
 
+                float price = (float)(CheatBehaviour.DollarValueField?.GetValue(item) ?? 0f);
+                if (c.FilterLootByValue && price < c.MinLootValue) continue;
+
                 Vector3 screenPos = WorldToScreen(cam, item.transform.position);
                 if (!IsOnScreen(screenPos)) continue;
 
-                float price = (float)(CheatBehaviour.DollarValueField?.GetValue(item) ?? 0f);
                 string label = CleanName(item.name) + (c.EspLootPrice ? $"\n${price:F0}" : "");
                 Color col = (c.HighlightBestLoot && item == bestItem) ? _hotColor : Color.yellow;
 

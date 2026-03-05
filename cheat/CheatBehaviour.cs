@@ -36,6 +36,8 @@ namespace cheat
         // misc features
         public bool HighlightBestLoot = false;
         public bool EnemyNearbyWarning = false;
+        public float MinLootValue = 0f;
+        public bool FilterLootByValue = false;
 
         // menu state
         public bool MenuOpen = false;
