@@ -6,7 +6,7 @@ namespace cheat
     {
         public static void DrawMain(CheatBehaviour c)
         {
-            GUI.Box(new Rect(20, 20, 240, 570), "REPO Cheat");
+            GUI.Box(new Rect(20, 20, 240, 600), "REPO Hax by @pilot2254");
 
             int y = 50;
 
@@ -16,6 +16,7 @@ namespace cheat
             c.NoRagdoll = GUI.Toggle(new Rect(30, y += 28, 200, 25), c.NoRagdoll, "No Ragdoll");
             c.NoBreak = GUI.Toggle(new Rect(30, y += 28, 200, 25), c.NoBreak, "No Break (host only)");
             c.InfiniteStamina = GUI.Toggle(new Rect(30, y += 28, 200, 25), c.InfiniteStamina, "Infinite Stamina");
+            c.RainbowColor = GUI.Toggle(new Rect(30, y += 28, 200, 25), c.RainbowColor, "Rainbow Color");
 
             if (c.SpeedHack)
             {

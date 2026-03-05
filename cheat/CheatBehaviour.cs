@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Photon.Pun;
+using System.Collections;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -14,6 +15,7 @@ namespace cheat
         public bool NoRagdoll = false;
         public bool NoBreak = false;
         public bool InfiniteStamina = false;
+        public bool RainbowColor = false;
 
         // esp toggles
         public bool EspPlayers = false;
@@ -52,6 +54,10 @@ namespace cheat
         public PlayerController[] Players = new PlayerController[0];
         public PlayerAvatar[] Avatars = new PlayerAvatar[0];
         public PlayerController LocalPlayer;
+
+        // rainbow color state
+        private float _colorTimer = 0f;
+        private int _colorIndex = 0;
 
         // reflection fields
         public static readonly FieldInfo HealthField =
@@ -174,6 +180,19 @@ namespace cheat
                 {
                     if ((bool)(IsValuableField?.GetValue(obj) ?? false))
                         obj.OverrideIndestructible(0.5f);
+                }
+            }
+
+            if (RainbowColor && PlayerAvatar.instance != null && AssetManager.instance != null)
+            {
+                _colorTimer += Time.deltaTime;
+                if (_colorTimer >= 0.5f)
+                {
+                    _colorTimer = 0f;
+                    int count = AssetManager.instance.playerColors.Count;
+                    _colorIndex = (_colorIndex + 1) % count;
+                    PlayerAvatar.instance.photonView.RPC("SetColorRPC", RpcTarget.All, _colorIndex);
+                    // PlayerAvatar.instance.photonView.RPC("SetColorRPC", Photon.Realtime.RpcTarget.All, _colorIndex);
                 }
             }
         }
