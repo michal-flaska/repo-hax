@@ -52,7 +52,7 @@ namespace cheat
             c.FilterLootByValue = GUI.Toggle(new Rect(30, y += 26, 200, 22), c.FilterLootByValue, "Min Loot Value Filter");
             if (c.FilterLootByValue)
             {
-                c.MinLootValue = GUI.HorizontalSlider(new Rect(30, y += 24, 180, 20), c.MinLootValue, 0f, 1000f);
+                c.MinLootValue = GUI.HorizontalSlider(new Rect(30, y += 24, 180, 20), c.MinLootValue, 0f, 5000f);
                 GUI.Label(new Rect(30, y += 18, 200, 20), $"Min: ${c.MinLootValue:F0}");
                 y += 4;
             }

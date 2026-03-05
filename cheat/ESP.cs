@@ -105,7 +105,10 @@ namespace cheat
 
                 EnemyParent parent = enemy.GetComponentInParent<EnemyParent>();
                 EnemyHealth eHealth = parent?.GetComponentInChildren<EnemyHealth>();
-                if (eHealth == null || eHealth.health <= 0) continue;
+                if (eHealth == null) continue;
+
+                int enemyHp = (int)(CheatBehaviour.EnemyHealthCurrentField?.GetValue(eHealth) ?? eHealth.health);
+                if (enemyHp <= 0) continue;
 
                 float dist = c.LocalPlayer != null
                     ? Vector3.Distance(c.LocalPlayer.transform.position, enemy.CenterTransform.position)
@@ -118,7 +121,7 @@ namespace cheat
 
                 string label = parent.enemyName;
                 if (c.EspEnemyDist) label += $" [{dist:F0}m]";
-                if (c.EspEnemyHp) label += $"\n{eHealth.health}HP";
+                if (c.EspEnemyHp) label += $"\n{enemyHp}HP";
 
                 DrawLabel(screenPos, label, Color.red);
             }
@@ -188,7 +191,10 @@ namespace cheat
                 if (enemy == null) continue;
 
                 EnemyHealth eHealth = enemy.GetComponentInParent<EnemyParent>()?.GetComponentInChildren<EnemyHealth>();
-                if (eHealth == null || eHealth.health <= 0) continue;
+                if (eHealth == null) continue;
+
+                int hp = (int)(CheatBehaviour.EnemyHealthCurrentField?.GetValue(eHealth) ?? eHealth.health);
+                if (hp <= 0) continue;
 
                 float dist = Vector3.Distance(c.LocalPlayer.transform.position, enemy.CenterTransform.position);
                 if (dist > 10f) continue;

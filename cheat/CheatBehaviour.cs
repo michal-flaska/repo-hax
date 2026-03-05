@@ -114,6 +114,9 @@ namespace cheat
         //   rainbow:   <gradient>text       - colored gradient text
 
         // ----------------------------------------------------------------------------------------------------------------------
+        public static readonly FieldInfo EnemyHealthCurrentField =
+            typeof(EnemyHealth).GetField("healthCurrent", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
 
         void Start()
         {
