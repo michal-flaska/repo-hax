@@ -74,7 +74,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="CheatBehaviour.cs" />
+    <Compile Include="ESP.cs" />
+    <Compile Include="Helpers.cs" />
+    <Compile Include="Loader.cs" />
+    <Compile Include="Menus.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
