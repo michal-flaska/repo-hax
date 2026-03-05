@@ -55,6 +55,51 @@ namespace cheat
         public static readonly FieldInfo DollarValueField =
             typeof(ValuableObject).GetField("dollarValueCurrent", BindingFlags.Instance | BindingFlags.NonPublic);
 
+        // my dnspy shit notes
+
+        // PlayerHealth.health        - Token: 0x04002377, internal int, default 100
+        // PlayerAvatar.isLocal       - Token: 0x040020B1, internal bool
+        // PlayerAvatar.instance      - Token: 0x040020E4, public static
+        // PlayerAvatar.playerHealth  - Token: 0x0400209E, public PlayerHealth
+        // PlayerAvatar.steamID       - Token: 0x040020AC, internal string
+        // PlayerAvatar.playerName    - Token: 0x040020AB, internal string
+        // PlayerController.instance  - Token: 0x040021EE, public static
+        // PlayerController.cameraGameObject - Token: 0x04002232, public GameObject (actual render camera)
+        // PlayerController.DebugNoTumble - Token: 0x04002228, public bool
+        //   TumbleRequest checks this - if true and _playerInput is false, ragdoll is blocked
+        // PlayerController.DebugEnergy - Token: 0x0400222A, public bool
+        //   if true, SprintDrainTimer never drains EnergyCurrent and slide costs 0
+        // PlayerController.EnergyCurrent - Token: 0x0400222C, public float
+        // PlayerController.EnergyStart   - Token: 0x0400222B, public float, default 100
+        // PlayerController.OverrideSpeed(float _speedMulti, float _time) - Token: 0x06001572
+        //   internally multiplies playerOriginalMoveSpeed/SprintSpeed/CrouchSpeed
+        //   playerOriginalMoveSpeed   - Token: 0x04002261, private float, set in LateStart() after upgrades
+        //   playerOriginalSprintSpeed - Token: 0x04002263, internal float, set in LateStart() after upgrades
+        //   playerOriginalCrouchSpeed - Token: 0x04002264, private float, set in LateStart() after upgrades
+        // StatsManager.instance      - Token: 0x04001CB3, public static
+        // StatsManager.DictionaryUpdateValue(string dictName, string steamID, int value) - Token: 0x06001292
+        // upgrade dicts (all public Dictionary<string,int>, keyed by steamID):
+        //   playerUpgradeHealth     - Token: 0x04001CBF  (each point = +20 max hp)
+        //   playerUpgradeStamina    - Token: 0x04001CC0
+        //   playerUpgradeSpeed      - Token: 0x04001CC8  (adds directly to SprintSpeed in LateStart)
+        //   playerUpgradeStrength   - Token: 0x04001CC9
+        //   playerUpgradeExtraJump  - Token: 0x04001CC1
+        //   playerUpgradeRange      - Token: 0x04001CCB
+        //   playerUpgradeThrow      - Token: 0x04001CCA
+        // PhysGrabObject.isValuable  - Token: 0x04001F0B, internal bool
+        // PhysGrabObject.OverrideIndestructible(float time) - Token: 0x060013DD
+        // ExtractionPoint.safetySpawn - public Transform
+        //   isLocked - public bool
+        // ChatManager.instance       - Token: 0x040024CC, public static
+        // ChatManager.ForceSendMessage(string _message) - Token: 0x06001681, public
+        //   sets chatMessage then calls ForceConfirmChat() -> StateSet(Send)
+        //   only works in multiplayer - Update() returns early in singleplayer
+        // chat tricks (TMP rich text parsed by the game):
+        //   flashbang: <size=-111111>text   - sets text size to near-zero causing screen flash
+        //   big text:  <size=999>text       - massive text on everyone's screen
+        //   invisible: <alpha=#00>text      - sends invisible message
+        //   rainbow:   <gradient>text       - colored gradient text
+
         // ----------------------------------------------------------------------------------------------------------------------
 
         void Start()
