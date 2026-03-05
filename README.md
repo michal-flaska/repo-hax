@@ -1,10 +1,16 @@
 ## how it looks
+
 ![alt text](image.png)
+
+<br>
+
 ![alt text](image-1.png)
+![alt text](image-2.png)
+![alt text](image-3.png)
 
 ## what is it
 
-unity mono injection cheat for REPO - made for fun, not maintained
+unity mono injection cheat for REPO - made for fun
 
 inject with SharpMonoInjector after loading into a level (not main menu)
 
@@ -13,12 +19,19 @@ features:
 - speed multiplier (1x - 5x, uses game's own speed system)
 - no ragdoll (blocks damage/enemy ragdoll, voluntary tumble still works)
 - no break (valuables cant take damage)
+- infinite stamina
+- rainbow color (cycles through all player colors, synced to everyone)
 - player esp (name, hp, distance through walls)
 - enemy esp (name, hp, distance through walls)
 - loot esp (item name + value)
 - extraction esp (green = open, red = locked)
-- infinite stamina
-- tp to extraction
+- loot overlay (always-on total loot value + item count in top-right corner)
+- highlight best loot (marks the most valuable item on the map)
+- min loot value filter (hides cheap items from esp)
+- distance filter (per-category max distance for esp)
+- enemy nearby warning (banner when an enemy is within 10m)
+- tp to extraction (teleports you to the nearest unlocked extraction point)
+- yeet loot (blasts all valuables away from you)
 - upgrades menu (health/stamina/speed/strength/jump/range, takes effect next level)
 - troll chat (flashbang, big text, invisible messages, spam - multiplayer only)
 
