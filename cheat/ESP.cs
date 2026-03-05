@@ -8,6 +8,7 @@ namespace cheat
     public static class ESP
     {
         private static GUIStyle _style;
+        private static GUIStyle _overlayStyle;
 
         public static void Draw(CheatBehaviour c)
         {
@@ -24,10 +25,45 @@ namespace cheat
                 };
             }
 
+            if (_overlayStyle == null)
+            {
+                _overlayStyle = new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = 15,
+                    fontStyle = FontStyle.Bold,
+                    alignment = TextAnchor.UpperLeft
+                };
+                _overlayStyle.normal.textColor = Color.white;
+            }
+
             if (c.EspPlayers) DrawPlayers(c, cam);
             if (c.EspEnemies) DrawEnemies(c, cam);
             if (c.EspLoot) DrawLoot(c, cam);
             if (c.EspExtraction) DrawExtractions(c, cam);
+
+            DrawLootOverlay(c);
+        }
+
+        // always-on overlay in top-right showing total loot value on the map
+        private static void DrawLootOverlay(CheatBehaviour c)
+        {
+            float total = 0f;
+            int count = 0;
+
+            foreach (var item in c.Valuables)
+            {
+                if (item == null) continue;
+                float price = (float)(CheatBehaviour.DollarValueField?.GetValue(item) ?? 0f);
+                total += price;
+                count++;
+            }
+
+            string text = $"Loot: ${total:F0}  ({count} items)";
+            Vector2 size = _overlayStyle.CalcSize(new GUIContent(text));
+
+            // top-right corner with a small margin
+            float x = Screen.width - size.x - 10f;
+            GUI.Label(new Rect(x, 10f, size.x, size.y), text, _overlayStyle);
         }
 
         private static void DrawPlayers(CheatBehaviour c, Camera cam)
