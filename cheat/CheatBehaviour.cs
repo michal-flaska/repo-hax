@@ -68,6 +68,9 @@ namespace cheat
         public static readonly FieldInfo DollarValueField =
             typeof(ValuableObject).GetField("dollarValueCurrent", BindingFlags.Instance | BindingFlags.NonPublic);
 
+        public static readonly FieldInfo EnemyHealthCurrentField =
+            typeof(EnemyHealth).GetField("healthCurrent", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
         // my dnspy shit notes
 
         // PlayerHealth.health        - Token: 0x04002377, internal int, default 100
@@ -114,9 +117,6 @@ namespace cheat
         //   rainbow:   <gradient>text       - colored gradient text
 
         // ----------------------------------------------------------------------------------------------------------------------
-        public static readonly FieldInfo EnemyHealthCurrentField =
-            typeof(EnemyHealth).GetField("healthCurrent", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-
 
         void Start()
         {

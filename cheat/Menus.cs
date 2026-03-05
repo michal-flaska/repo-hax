@@ -14,7 +14,7 @@ namespace cheat
             c.GodMode = GUI.Toggle(new Rect(30, y, 200, 25), c.GodMode, "God Mode");
             c.SpeedHack = GUI.Toggle(new Rect(30, y += 28, 200, 25), c.SpeedHack, "Speed Multiplier");
             c.NoRagdoll = GUI.Toggle(new Rect(30, y += 28, 200, 25), c.NoRagdoll, "No Ragdoll");
-            c.NoBreak = GUI.Toggle(new Rect(30, y += 28, 200, 25), c.NoBreak, "No Break");
+            c.NoBreak = GUI.Toggle(new Rect(30, y += 28, 200, 25), c.NoBreak, "No Break (host only)");
             c.InfiniteStamina = GUI.Toggle(new Rect(30, y += 28, 200, 25), c.InfiniteStamina, "Infinite Stamina");
 
             if (c.SpeedHack)
