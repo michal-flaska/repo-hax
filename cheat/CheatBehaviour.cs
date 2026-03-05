@@ -50,6 +50,7 @@ namespace cheat
         public ExtractionPoint[] Extractions = new ExtractionPoint[0];
         public Enemy[] Enemies = new Enemy[0];
         public PlayerController[] Players = new PlayerController[0];
+        public PlayerAvatar[] Avatars = new PlayerAvatar[0];
         public PlayerController LocalPlayer;
 
         // reflection fields
@@ -64,6 +65,12 @@ namespace cheat
 
         public static readonly FieldInfo PlayerNameField =
             typeof(PlayerController).GetField("playerName", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+        public static readonly FieldInfo AvatarNameField =
+            typeof(PlayerAvatar).GetField("playerName", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+        public static readonly FieldInfo AvatarIsLocalField =
+            typeof(PlayerAvatar).GetField("isLocal", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
         public static readonly FieldInfo DollarValueField =
             typeof(ValuableObject).GetField("dollarValueCurrent", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -131,6 +138,7 @@ namespace cheat
                 Extractions = UnityEngine.Object.FindObjectsOfType<ExtractionPoint>();
                 Enemies = UnityEngine.Object.FindObjectsOfType<Enemy>();
                 Players = UnityEngine.Object.FindObjectsOfType<PlayerController>();
+                Avatars = UnityEngine.Object.FindObjectsOfType<PlayerAvatar>();
                 LocalPlayer = Players.FirstOrDefault(p => p.cameraGameObjectLocal != null);
 
                 yield return new WaitForSeconds(3f);

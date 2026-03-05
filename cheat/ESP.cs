@@ -44,6 +44,11 @@ namespace cheat
             if (c.EspExtraction) DrawExtractions(c, cam);
             if (c.EnemyNearbyWarning) DrawEnemyWarning(c);
 
+            // debug labels
+            //  GUI.Label(new Rect(10, 40, 300, 20), $"Players cached: {c.Players.Length}");
+            //  GUI.Label(new Rect(10, 60, 300, 20), $"Avatars cached: {c.Avatars.Length}");
+            //  GUI.Label(new Rect(10, 80, 300, 20), $"Avatars: {UnityEngine.Object.FindObjectsOfType<PlayerAvatar>().Length}");
+
             DrawLootOverlay(c);
         }
 
@@ -71,22 +76,24 @@ namespace cheat
 
         private static void DrawPlayers(CheatBehaviour c, Camera cam)
         {
-            foreach (var player in c.Players)
+            foreach (var avatar in c.Avatars)
             {
-                if (player == null) continue;
-                if (player.cameraGameObjectLocal != null) continue; // skip local
+                if (avatar == null) continue;
+
+                bool isLocal = (bool)(CheatBehaviour.AvatarIsLocalField?.GetValue(avatar) ?? false);
+                if (isLocal) continue;
 
                 float dist = c.LocalPlayer != null
-                    ? Vector3.Distance(c.LocalPlayer.transform.position, player.transform.position)
+                    ? Vector3.Distance(c.LocalPlayer.transform.position, avatar.transform.position)
                     : 0f;
 
                 if (c.DistanceFilterPlayers && dist > c.MaxDistance) continue;
 
-                Vector3 screenPos = WorldToScreen(cam, player.transform.position + Vector3.up);
+                Vector3 screenPos = WorldToScreen(cam, avatar.transform.position + Vector3.up);
                 if (!IsOnScreen(screenPos)) continue;
 
-                string name = CheatBehaviour.PlayerNameField?.GetValue(player) as string ?? "Player";
-                int hp = (int)(CheatBehaviour.HealthField?.GetValue(player.playerAvatarScript?.playerHealth) ?? 0);
+                string name = CheatBehaviour.AvatarNameField?.GetValue(avatar) as string ?? "Player";
+                int hp = (int)(CheatBehaviour.HealthField?.GetValue(avatar.playerHealth) ?? 0);
                 if (hp <= 0) continue;
 
                 string label = name;
