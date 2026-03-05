@@ -6,34 +6,50 @@ namespace cheat
     {
         public static void DrawMain(CheatBehaviour c)
         {
-            GUI.Box(new Rect(20, 20, 230, 390), "REPO Cheat");
+            GUI.Box(new Rect(20, 20, 240, 470), "REPO Cheat");
 
             int y = 50;
-            c.GodMode = GUI.Toggle(new Rect(30, y, 190, 25), c.GodMode, "God Mode");
-            c.SpeedHack = GUI.Toggle(new Rect(30, y += 30, 190, 25), c.SpeedHack, "Speed Multiplier");
-            c.NoRagdoll = GUI.Toggle(new Rect(30, y += 30, 190, 25), c.NoRagdoll, "No Ragdoll");
-            c.NoBreak = GUI.Toggle(new Rect(30, y += 30, 190, 25), c.NoBreak, "No Break");
-            c.InfiniteStamina = GUI.Toggle(new Rect(30, y += 30, 190, 25), c.InfiniteStamina, "Infinite Stamina");
 
-            GUI.Label(new Rect(30, y += 32, 190, 18), "── ESP ──");
-            c.EspPlayers = GUI.Toggle(new Rect(30, y += 22, 190, 22), c.EspPlayers, "Player ESP");
-            c.EspEnemies = GUI.Toggle(new Rect(30, y += 26, 190, 22), c.EspEnemies, "Enemy ESP");
-            c.EspLoot = GUI.Toggle(new Rect(30, y += 26, 190, 22), c.EspLoot, "Loot ESP");
-            c.EspExtraction = GUI.Toggle(new Rect(30, y += 26, 190, 22), c.EspExtraction, "Extraction ESP");
+            // feats
+            c.GodMode = GUI.Toggle(new Rect(30, y, 200, 25), c.GodMode, "God Mode");
+            c.SpeedHack = GUI.Toggle(new Rect(30, y += 28, 200, 25), c.SpeedHack, "Speed Multiplier");
+            c.NoRagdoll = GUI.Toggle(new Rect(30, y += 28, 200, 25), c.NoRagdoll, "No Ragdoll");
+            c.NoBreak = GUI.Toggle(new Rect(30, y += 28, 200, 25), c.NoBreak, "No Break");
+            c.InfiniteStamina = GUI.Toggle(new Rect(30, y += 28, 200, 25), c.InfiniteStamina, "Infinite Stamina");
 
             if (c.SpeedHack)
             {
-                c.SpeedMultiplier = GUI.HorizontalSlider(new Rect(30, y += 32, 160, 20), c.SpeedMultiplier, 1f, 5f);
-                GUI.Label(new Rect(30, y += 16, 190, 20), $"x{c.SpeedMultiplier:F1} speed");
+                c.SpeedMultiplier = GUI.HorizontalSlider(new Rect(30, y += 28, 170, 20), c.SpeedMultiplier, 1f, 5f);
+                GUI.Label(new Rect(30, y += 18, 200, 20), $"x{c.SpeedMultiplier:F1} speed");
+                y += 4;
             }
             else
             {
-                y += 36;
+                y += 8;
             }
 
-            if (GUI.Button(new Rect(30, y += 10, 90, 28), "Upgrades")) c.ShowUpgrades = true;
-            if (GUI.Button(new Rect(130, y, 90, 28), "TP Extract")) Helpers.TeleportToExtraction();
-            if (GUI.Button(new Rect(30, y + 33, 190, 25), "Troll Chat")) c.ShowTrolls = true;
+            // esp
+            GUI.Label(new Rect(30, y += 8, 200, 18), "── ESP ──");
+            c.EspPlayers = GUI.Toggle(new Rect(30, y += 22, 200, 22), c.EspPlayers, "Player ESP");
+            c.EspEnemies = GUI.Toggle(new Rect(30, y += 26, 200, 22), c.EspEnemies, "Enemy ESP");
+            c.EspLoot = GUI.Toggle(new Rect(30, y += 26, 200, 22), c.EspLoot, "Loot ESP");
+            c.EspExtraction = GUI.Toggle(new Rect(30, y += 26, 200, 22), c.EspExtraction, "Extraction ESP");
+
+            // distance filter
+            GUI.Label(new Rect(30, y += 30, 200, 18), "── Distance Filter ──");
+
+            GUI.Label(new Rect(30, y += 22, 200, 18), $"Max: {c.MaxDistance:F0}m");
+            c.MaxDistance = GUI.HorizontalSlider(new Rect(30, y += 18, 180, 20), c.MaxDistance, 5f, 200f);
+
+            c.DistanceFilterEnemies = GUI.Toggle(new Rect(30, y += 24, 200, 22), c.DistanceFilterEnemies, "Filter Enemies");
+            c.DistanceFilterLoot = GUI.Toggle(new Rect(30, y += 24, 200, 22), c.DistanceFilterLoot, "Filter Loot");
+            c.DistanceFilterPlayers = GUI.Toggle(new Rect(30, y += 24, 200, 22), c.DistanceFilterPlayers, "Filter Players");
+
+            // buttons
+            y += 30;
+            if (GUI.Button(new Rect(30, y, 100, 28), "Upgrades")) c.ShowUpgrades = true;
+            if (GUI.Button(new Rect(140, y, 90, 28), "TP Extract")) Helpers.TeleportToExtraction();
+            if (GUI.Button(new Rect(30, y + 33, 200, 25), "Troll Chat")) c.ShowTrolls = true;
         }
 
         public static void DrawUpgrades(CheatBehaviour c)

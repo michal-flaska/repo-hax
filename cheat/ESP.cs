@@ -2,7 +2,7 @@
 
 namespace cheat
 {
-    // ESP is based on the repo-internal project by Dark Form
+    // ESP is based on the repo-internal project by Dark-Form
     // https://github.com/Dark-Form/REPO-Internal
 
     public static class ESP
@@ -32,9 +32,16 @@ namespace cheat
 
         private static void DrawPlayers(CheatBehaviour c, Camera cam)
         {
-            foreach (var player in UnityEngine.Object.FindObjectsOfType<PlayerController>())
+            foreach (var player in c.Players)
             {
-                if (player.cameraGameObjectLocal != null) continue;
+                if (player == null) continue;
+                if (player.cameraGameObjectLocal != null) continue; // skip local
+
+                float dist = c.LocalPlayer != null
+                    ? Vector3.Distance(c.LocalPlayer.transform.position, player.transform.position)
+                    : 0f;
+
+                if (c.DistanceFilterPlayers && dist > c.MaxDistance) continue;
 
                 Vector3 screenPos = WorldToScreen(cam, player.transform.position + Vector3.up);
                 if (!IsOnScreen(screenPos)) continue;
@@ -44,10 +51,8 @@ namespace cheat
                 if (hp <= 0) continue;
 
                 string label = name;
-                if (c.EspPlayerDist && c.LocalPlayer != null)
-                    label += $" [{Vector3.Distance(c.LocalPlayer.transform.position, player.transform.position):F0}m]";
-                if (c.EspPlayerHp)
-                    label += $"\n{hp}HP";
+                if (c.EspPlayerDist) label += $" [{dist:F0}m]";
+                if (c.EspPlayerHp) label += $"\n{hp}HP";
 
                 DrawLabel(screenPos, label, Color.cyan);
             }
@@ -63,14 +68,18 @@ namespace cheat
                 EnemyHealth eHealth = parent?.GetComponentInChildren<EnemyHealth>();
                 if (eHealth == null || eHealth.health <= 0) continue;
 
+                float dist = c.LocalPlayer != null
+                    ? Vector3.Distance(c.LocalPlayer.transform.position, enemy.CenterTransform.position)
+                    : 0f;
+
+                if (c.DistanceFilterEnemies && dist > c.MaxDistance) continue;
+
                 Vector3 screenPos = WorldToScreen(cam, enemy.CenterTransform.position);
                 if (!IsOnScreen(screenPos)) continue;
 
                 string label = parent.enemyName;
-                if (c.EspEnemyDist && c.LocalPlayer != null)
-                    label += $" [{Vector3.Distance(c.LocalPlayer.transform.position, enemy.CenterTransform.position):F0}m]";
-                if (c.EspEnemyHp)
-                    label += $"\n{eHealth.health}HP";
+                if (c.EspEnemyDist) label += $" [{dist:F0}m]";
+                if (c.EspEnemyHp) label += $"\n{eHealth.health}HP";
 
                 DrawLabel(screenPos, label, Color.red);
             }
@@ -82,11 +91,17 @@ namespace cheat
             {
                 if (item == null) continue;
 
+                float dist = c.LocalPlayer != null
+                    ? Vector3.Distance(c.LocalPlayer.transform.position, item.transform.position)
+                    : 0f;
+
+                if (c.DistanceFilterLoot && dist > c.MaxDistance) continue;
+
                 Vector3 screenPos = WorldToScreen(cam, item.transform.position);
                 if (!IsOnScreen(screenPos)) continue;
 
                 float price = (float)(CheatBehaviour.DollarValueField?.GetValue(item) ?? 0f);
-                string label = item.name + (c.EspLootPrice ? $"\n${price:F0}" : "");
+                string label = CleanName(item.name) + (c.EspLootPrice ? $"\n${price:F0}" : "");
 
                 DrawLabel(screenPos, label, Color.yellow);
             }
@@ -102,10 +117,23 @@ namespace cheat
                 if (!IsOnScreen(screenPos)) continue;
 
                 Color col = ep.isLocked ? Color.red : Color.green;
-                string label = ep.isLocked ? "Extraction [LOCKED]" : "Extraction";
+                string label = ep.isLocked ? "Extraction [LOCKED]" : "Extraction [OPEN]";
 
                 DrawLabel(screenPos, label, col);
             }
+        }
+
+        // strips "Valuable " prefix and " (Clone)" suffix Unity adds to spawned objects
+        private static string CleanName(string raw)
+        {
+            if (raw.StartsWith("Valuable "))
+                raw = raw.Substring("Valuable ".Length);
+
+            int cloneIdx = raw.IndexOf("(Clone)");
+            if (cloneIdx >= 0)
+                raw = raw.Substring(0, cloneIdx).TrimEnd();
+
+            return raw;
         }
 
         private static void DrawLabel(Vector3 screenPos, string text, Color color)

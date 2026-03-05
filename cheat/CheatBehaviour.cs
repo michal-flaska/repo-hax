@@ -27,6 +27,12 @@ namespace cheat
         public bool EspEnemyHp = true;
         public bool EspLootPrice = true;
 
+        // distance filter
+        public float MaxDistance = 50f;
+        public bool DistanceFilterEnemies = true;
+        public bool DistanceFilterLoot = true;
+        public bool DistanceFilterPlayers = false;
+
         // menu state
         public bool MenuOpen = false;
         public bool ShowUpgrades = false;
@@ -37,6 +43,7 @@ namespace cheat
         public ValuableObject[] Valuables = new ValuableObject[0];
         public ExtractionPoint[] Extractions = new ExtractionPoint[0];
         public Enemy[] Enemies = new Enemy[0];
+        public PlayerController[] Players = new PlayerController[0];
         public PlayerController LocalPlayer;
 
         // reflection fields
@@ -114,11 +121,10 @@ namespace cheat
                 Valuables = UnityEngine.Object.FindObjectsOfType<ValuableObject>();
                 Extractions = UnityEngine.Object.FindObjectsOfType<ExtractionPoint>();
                 Enemies = UnityEngine.Object.FindObjectsOfType<Enemy>();
+                Players = UnityEngine.Object.FindObjectsOfType<PlayerController>();
+                LocalPlayer = Players.FirstOrDefault(p => p.cameraGameObjectLocal != null);
 
-                var all = UnityEngine.Object.FindObjectsOfType<PlayerController>();
-                LocalPlayer = all.FirstOrDefault(p => p.cameraGameObjectLocal != null);
-
-                yield return new WaitForSeconds(10f);
+                yield return new WaitForSeconds(3f);
             }
         }
 
