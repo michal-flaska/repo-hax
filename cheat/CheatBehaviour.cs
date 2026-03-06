@@ -157,6 +157,9 @@ namespace cheat
             if (UnityEngine.Input.GetKeyDown(KeyCode.Insert))
                 MenuOpen = !MenuOpen;
 
+            Cursor.visible = MenuOpen;
+            Cursor.lockState = MenuOpen ? CursorLockMode.None : CursorLockMode.Locked;
+
             var pc = PlayerController.instance;
             var ph = PlayerAvatar.instance?.playerHealth;
 
