@@ -132,10 +132,14 @@ namespace cheat
 
         public static void DrawTrolls(CheatBehaviour c)
         {
-            GUI.Box(new Rect(MenuX, 20, 220, 280), "Troll Chat");
+            int btnY = 72;
+            int rows = 6; // Flashbang, Big Text, Invisible, Spam Hello, Max Chaos, Custom
+            int backY = btnY + rows * 33 + 6;
+            int boxH = backY + 25 + 12;
+
+            GUI.Box(new Rect(MenuX, 20, 220, boxH), "Troll Chat");
             GUI.Label(new Rect(30, 48, 180, 20), "multiplayer only");
 
-            int btnY = 72;
             if (GUI.Button(new Rect(30, btnY, 180, BtnH), "Flashbang")) Helpers.SendChat("<size=-111111>hi");
             if (GUI.Button(new Rect(30, btnY + 33, 180, BtnH), "Big Text")) Helpers.SendChat("<size=999>HELLO");
             if (GUI.Button(new Rect(30, btnY + 66, 180, BtnH), "Invisible")) Helpers.SendChat("<alpha=#00>ghost message");
@@ -143,7 +147,7 @@ namespace cheat
             if (GUI.Button(new Rect(30, btnY + 132, 180, BtnH), "Max Chaos")) Helpers.SendChat("<size=-111111><size=999>CHAOS");
             if (GUI.Button(new Rect(30, btnY + 165, 180, BtnH), "Custom...")) Helpers.SendChat("<size=-111111>custom troll");
 
-            if (GUI.Button(new Rect(30, 248, 180, 25), "Back")) c.ShowTrolls = false;
+            if (GUI.Button(new Rect(30, backY, 180, 25), "Back")) c.ShowTrolls = false;
         }
     }
 }
