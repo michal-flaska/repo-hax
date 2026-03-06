@@ -10,6 +10,8 @@ namespace cheat
         private static GUIStyle _style;
         private static GUIStyle _overlayStyle;
 
+        private const float HighlightThreshold = 10000f; //drawLoot
+
         private static readonly Color _hotColor = new Color(1f, 0f, 0.47f); // #ff0077
 
         public static void Draw(CheatBehaviour c)
@@ -136,19 +138,6 @@ namespace cheat
 
         private static void DrawLoot(CheatBehaviour c, Camera cam)
         {
-            // find most valuable item first if highlight is on
-            ValuableObject bestItem = null;
-            if (c.HighlightBestLoot)
-            {
-                float best = float.MinValue;
-                foreach (var item in c.Valuables)
-                {
-                    if (item == null) continue;
-                    float v = (float)(CheatBehaviour.DollarValueField?.GetValue(item) ?? 0f);
-                    if (v > best) { best = v; bestItem = item; }
-                }
-            }
-
             foreach (var item in c.Valuables)
             {
                 if (item == null) continue;
@@ -166,7 +155,7 @@ namespace cheat
                 if (!IsOnScreen(screenPos)) continue;
 
                 string label = CleanName(item.name) + (c.EspLootPrice ? $"\n${price:F0}" : "");
-                Color col = (c.HighlightBestLoot && item == bestItem) ? _hotColor : Color.yellow;
+                Color col = (c.HighlightBestLoot && price >= HighlightThreshold) ? _hotColor : Color.yellow;
 
                 DrawLabel(screenPos, label, col);
             }
