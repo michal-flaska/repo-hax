@@ -17,6 +17,8 @@ namespace cheat
         public bool InfiniteStamina = false;
         public bool RainbowColor = false;
         public float RainbowSpeed = 0.5f; // seconds per color change
+        public bool BrightMode = false;
+        public float BrightIntensity = 3f;
 
         // esp toggles
         public bool EspPlayers = false;
@@ -59,6 +61,11 @@ namespace cheat
         // rainbow color state
         private float _colorTimer = 0f;
         private int _colorIndex = 0;
+
+        // private fields for storing originals
+        private Color _origAmbientLight;
+        private float _origAmbientIntensity;
+        private bool _brightWasOn = false;
 
         // reflection fields
         public static readonly FieldInfo HealthField =
@@ -199,6 +206,24 @@ namespace cheat
                     PlayerAvatar.instance.photonView.RPC("SetColorRPC", RpcTarget.All, _colorIndex);
                     // PlayerAvatar.instance.photonView.RPC("SetColorRPC", Photon.Realtime.RpcTarget.All, _colorIndex);
                 }
+            }
+
+            if (BrightMode)
+            {
+                if (!_brightWasOn)
+                {
+                    _origAmbientLight = RenderSettings.ambientLight;
+                    _origAmbientIntensity = RenderSettings.ambientIntensity;
+                    _brightWasOn = true;
+                }
+                RenderSettings.ambientLight = Color.white;
+                RenderSettings.ambientIntensity = BrightIntensity;
+            }
+            else if (_brightWasOn)
+            {
+                RenderSettings.ambientLight = _origAmbientLight;
+                RenderSettings.ambientIntensity = _origAmbientIntensity;
+                _brightWasOn = false;
             }
         }
 

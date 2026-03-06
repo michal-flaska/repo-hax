@@ -66,11 +66,18 @@ namespace cheat
             c.HighlightBestLoot = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.HighlightBestLoot, "Highlight Best Loot", Theme.Toggle); y += RowH;
             c.EnemyNearbyWarning = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.EnemyNearbyWarning, "Enemy Nearby Warning", Theme.Toggle); y += RowH;
             c.FilterLootByValue = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.FilterLootByValue, "Min Loot Value Filter", Theme.Toggle); y += RowH;
+            c.BrightMode = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.BrightMode, "Bright Mode", Theme.Toggle); y += RowH;
 
             if (c.FilterLootByValue)
             {
                 c.MinLootValue = GUI.HorizontalSlider(new Rect(ContentX, y, SliderW, SliderH), c.MinLootValue, 0f, 5000f); y += SliderH + 2;
                 GUI.Label(new Rect(ContentX, y, ContentW, LabelH), $"Min: ${c.MinLootValue:F0}", Theme.Label); y += LabelH + 4;
+            }
+
+            if (c.BrightMode)
+            {
+                c.BrightIntensity = GUI.HorizontalSlider(new Rect(ContentX, y, SliderW, SliderH), c.BrightIntensity, 1f, 10f); y += SliderH + 2;
+                GUI.Label(new Rect(ContentX, y, ContentW, LabelH), $"Intensity: {c.BrightIntensity:F1}", Theme.Label); y += LabelH + 4;
             }
 
             y += SectionGap + 4;
@@ -92,6 +99,7 @@ namespace cheat
             h += SectionGap + HeaderH + 2 + RowH * 3;
             if (c.FilterLootByValue) h += SliderH + 2 + LabelH + 4;
             h += SectionGap + 4 + BtnH + BtnGap + BtnH + 12;
+            if (c.BrightMode) h += SliderH + 2 + LabelH + 4;
             return h;
         }
 
