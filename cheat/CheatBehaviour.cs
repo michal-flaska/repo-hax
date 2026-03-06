@@ -18,7 +18,7 @@ namespace cheat
         public bool RainbowColor = false;
         public float RainbowSpeed = 0.5f; // seconds per color change
         public bool BrightMode = false;
-        public float BrightIntensity = 3f;
+        //public float BrightIntensity = 3f;
 
         // esp toggles
         public bool EspPlayers = false;
@@ -66,6 +66,8 @@ namespace cheat
         private Color _origAmbientLight;
         private float _origAmbientIntensity;
         private bool _brightWasOn = false;
+        private bool _origFog;
+        private float _origFogDensity;
 
         // reflection fields
         public static readonly FieldInfo HealthField =
@@ -214,15 +216,21 @@ namespace cheat
                 {
                     _origAmbientLight = RenderSettings.ambientLight;
                     _origAmbientIntensity = RenderSettings.ambientIntensity;
+                    _origFog = RenderSettings.fog;
+                    _origFogDensity = RenderSettings.fogDensity;
                     _brightWasOn = true;
                 }
                 RenderSettings.ambientLight = Color.white;
-                RenderSettings.ambientIntensity = BrightIntensity;
+                RenderSettings.ambientIntensity = 5f;
+                RenderSettings.fog = false;
+                RenderSettings.fogDensity = 0f;
             }
             else if (_brightWasOn)
             {
                 RenderSettings.ambientLight = _origAmbientLight;
                 RenderSettings.ambientIntensity = _origAmbientIntensity;
+                RenderSettings.fog = _origFog;
+                RenderSettings.fogDensity = _origFogDensity;
                 _brightWasOn = false;
             }
         }
