@@ -221,12 +221,13 @@ namespace cheat
                     _origFogDensity = RenderSettings.fogDensity;
                     _origFarClip = Camera.main?.farClipPlane ?? 1000f;
                     _brightWasOn = true;
+
+                    RenderSettings.ambientLight = Color.white;
+                    RenderSettings.ambientIntensity = 5f;
+                    RenderSettings.fog = false;
+                    RenderSettings.fogDensity = 0f;
+                    if (Camera.main != null) Camera.main.farClipPlane = 2000f;
                 }
-                RenderSettings.ambientLight = Color.white;
-                RenderSettings.ambientIntensity = 5f;
-                RenderSettings.fog = false;
-                RenderSettings.fogDensity = 0f;
-                if (Camera.main != null) Camera.main.farClipPlane = 10000f;
             }
             else if (_brightWasOn)
             {
@@ -234,7 +235,7 @@ namespace cheat
                 RenderSettings.ambientIntensity = _origAmbientIntensity;
                 RenderSettings.fog = _origFog;
                 RenderSettings.fogDensity = _origFogDensity;
-                if (Camera.main != null) Camera.main.farClipPlane = _origFarClip; // here
+                if (Camera.main != null) Camera.main.farClipPlane = _origFarClip;
                 _brightWasOn = false;
             }
         }
