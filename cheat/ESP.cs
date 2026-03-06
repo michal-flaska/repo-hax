@@ -182,7 +182,7 @@ namespace cheat
                 if (!IsOnScreen(screenPos)) continue;
 
                 Color col = ep.isLocked ? Color.red : Color.green;
-                string label = ep.isLocked ? "Extraction [LOCKED]" : "Extraction";
+                string label = ep.isLocked ? "Extraction [LOCKED]" : "Extraction [Open]";
 
                 DrawLabel(screenPos, label, col);
             }
