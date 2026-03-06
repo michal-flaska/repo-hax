@@ -158,7 +158,7 @@ namespace cheat
                 MenuOpen = !MenuOpen;
 
             Cursor.visible = MenuOpen;
-            Cursor.lockState = MenuOpen ? CursorLockMode.None : CursorLockMode.Locked;
+            // Cursor.lockState = MenuOpen ? CursorLockMode.None : CursorLockMode.Locked;
 
             var pc = PlayerController.instance;
             var ph = PlayerAvatar.instance?.playerHealth;
