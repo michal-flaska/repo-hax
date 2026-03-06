@@ -210,7 +210,7 @@ namespace cheat
                 string text = "! ENEMY NEARBY !";
                 Vector2 size = _overlayStyle.CalcSize(new GUIContent(text));
                 float x = (Screen.width - size.x) / 2f;
-                float y = Screen.height - size.y - 40f;
+                float y = (Screen.height / 2f) - size.y - 40f;
 
                 Color prev = GUI.color;
                 GUI.color = new Color(1f, 0.15f, 0.15f);
