@@ -68,6 +68,7 @@ namespace cheat
         private bool _brightWasOn = false;
         private bool _origFog;
         private float _origFogDensity;
+        private float _origFarClip;
 
         // reflection fields
         public static readonly FieldInfo HealthField =
@@ -218,12 +219,14 @@ namespace cheat
                     _origAmbientIntensity = RenderSettings.ambientIntensity;
                     _origFog = RenderSettings.fog;
                     _origFogDensity = RenderSettings.fogDensity;
+                    _origFarClip = Camera.main?.farClipPlane ?? 1000f;
                     _brightWasOn = true;
                 }
                 RenderSettings.ambientLight = Color.white;
                 RenderSettings.ambientIntensity = 5f;
                 RenderSettings.fog = false;
                 RenderSettings.fogDensity = 0f;
+                if (Camera.main != null) Camera.main.farClipPlane = 10000f;
             }
             else if (_brightWasOn)
             {
@@ -231,6 +234,7 @@ namespace cheat
                 RenderSettings.ambientIntensity = _origAmbientIntensity;
                 RenderSettings.fog = _origFog;
                 RenderSettings.fogDensity = _origFogDensity;
+                if (Camera.main != null) Camera.main.farClipPlane = _origFarClip; // here
                 _brightWasOn = false;
             }
         }
