@@ -98,6 +98,24 @@ namespace cheat
             //    GUI.Label(new Rect(ContentX, y, ContentW, LabelH), $"Intensity: {c.BrightIntensity:F1}", Theme.Label); y += LabelH + 4;
             //}
 
+            y += SectionGap;
+            GUI.Label(new Rect(ContentX, y, ContentW, HeaderH), "── Flashlight ──", Theme.HeaderLabel); y += HeaderH + 2;
+            c.FlashlightCustomColor = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.FlashlightCustomColor, "Custom Color", Theme.Toggle); y += RowH;
+
+            if (c.FlashlightCustomColor)
+            {
+                // R G B sliders
+                GUI.Label(new Rect(ContentX, y, 20, LabelH), "R", Theme.Label);
+                c.FlashlightColor.r = GUI.HorizontalSlider(new Rect(ContentX + 20, y, SliderW - 20, SliderH), c.FlashlightColor.r, 0f, 1f); y += SliderH + 2;
+                GUI.Label(new Rect(ContentX, y, 20, LabelH), "G", Theme.Label);
+                c.FlashlightColor.g = GUI.HorizontalSlider(new Rect(ContentX + 20, y, SliderW - 20, SliderH), c.FlashlightColor.g, 0f, 1f); y += SliderH + 2;
+                GUI.Label(new Rect(ContentX, y, 20, LabelH), "B", Theme.Label);
+                c.FlashlightColor.b = GUI.HorizontalSlider(new Rect(ContentX + 20, y, SliderW - 20, SliderH), c.FlashlightColor.b, 0f, 1f); y += SliderH + 4;
+            }
+
+            c.FlashlightIntensity = GUI.HorizontalSlider(new Rect(ContentX, y, SliderW, SliderH), c.FlashlightIntensity, 1f, 7f); y += SliderH + 2;
+            GUI.Label(new Rect(ContentX, y, ContentW, LabelH), $"Intensity: {c.FlashlightIntensity:F1}", Theme.Label); y += LabelH + 4;
+
             y += SectionGap + 4;
             if (GUI.Button(new Rect(ContentX, y, 100, BtnH), "Upgrades", Theme.Button)) c.ShowUpgrades = true;
             if (GUI.Button(new Rect(ContentX + 110, y, 90, BtnH), "TP Extract", Theme.Button)) Helpers.TeleportToExtraction();
@@ -119,6 +137,8 @@ namespace cheat
             h += SectionGap + 4 + BtnH + BtnGap + BtnH + 12;
             //if (c.BrightMode) h += SliderH + 2 + LabelH + 4;
             if (c.Noclip) h += SliderH + 2 + LabelH + 4;
+            h += SectionGap + HeaderH + 2 + RowH + SliderH + 2 + LabelH + 4; // flashlight base
+            if (c.FlashlightCustomColor) h += (SliderH + 2) * 3 + 2; // RGB sliders
             return h;
         }
 

@@ -85,6 +85,11 @@ namespace cheat
         public bool NoLensDistortion = false;
         public bool _postProcessDirty = false;
 
+        // flashlight
+        public bool FlashlightCustomColor = false;
+        public Color FlashlightColor = Color.white;
+        public float FlashlightIntensity = 3f;
+
         // reflection fields
         public static readonly FieldInfo HealthField =
             typeof(PlayerHealth).GetField("health", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
@@ -109,6 +114,9 @@ namespace cheat
 
         public static readonly FieldInfo EnemyHealthCurrentField =
             typeof(EnemyHealth).GetField("healthCurrent", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+        private static readonly FieldInfo BaseIntensityField =
+            typeof(FlashlightController).GetField("baseIntensity", BindingFlags.Instance | BindingFlags.NonPublic);
 
         // my dnspy shit notes
 
@@ -305,6 +313,17 @@ namespace cheat
             {
                 RefreshPostProcess();
                 _postProcessDirty = false;
+            }
+
+            if (FlashlightCustomColor || FlashlightIntensity != 3f)
+            {
+                var fc = PlayerAvatar.instance?.GetComponentInChildren<FlashlightController>();
+                if (fc?.spotlight != null)
+                {
+                    if (FlashlightCustomColor)
+                        fc.spotlight.color = FlashlightColor;
+                    BaseIntensityField?.SetValue(fc, FlashlightIntensity);
+                }
             }
         }
 
