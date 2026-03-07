@@ -1,8 +1,10 @@
 ﻿using Photon.Pun;
+using Photon.Realtime;
 using System.Collections;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Rendering.PostProcessing;
 
 namespace cheat
 {
@@ -16,13 +18,16 @@ namespace cheat
         public bool NoBreak = false;
         public bool InfiniteStamina = false;
         public bool RainbowColor = false;
-        public float RainbowSpeed = 0.5f; // seconds per color change
+        public float RainbowSpeed = 0.5f;
+        public bool BrightMode = false;
 
         // esp toggles
         public bool EspPlayers = false;
         public bool EspEnemies = false;
         public bool EspLoot = false;
         public bool EspExtraction = false;
+        public bool EspBoxes = false;
+        public bool EspSnaplines = false;
 
         public bool EspPlayerDist = true;
         public bool EspPlayerHp = true;
@@ -41,6 +46,16 @@ namespace cheat
         public bool EnemyNearbyWarning = false;
         public float MinLootValue = 0f;
         public bool FilterLootByValue = false;
+        public bool NoChromaticAberration = false;
+        public bool NoBloom = false;
+        public bool NoLensDistortion = false;
+        public bool Noclip = false;
+        public float NoclipSpeed = 10f;
+
+        // flashlight
+        public bool FlashlightCustomColor = false;
+        public Color FlashlightColor = Color.white;
+        public float FlashlightIntensity = 3f;
 
         // menu state
         public bool MenuOpen = false;
@@ -59,6 +74,19 @@ namespace cheat
         // rainbow color state
         private float _colorTimer = 0f;
         private int _colorIndex = 0;
+
+        // bright mode state
+        private bool _brightWasOn = false;
+        private Color _origAmbientLight;
+        private float _origAmbientIntensity;
+        private bool _origFog;
+        private float _origFogDensity;
+        private float _origFarClip;
+
+        // noclip state
+        private bool _noclipWasOn = false;
+        private CharacterController _cc;
+        private Rigidbody _rb;
 
         // reflection fields
         public static readonly FieldInfo HealthField =
@@ -84,6 +112,12 @@ namespace cheat
 
         public static readonly FieldInfo EnemyHealthCurrentField =
             typeof(EnemyHealth).GetField("healthCurrent", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+        private static readonly FieldInfo BaseIntensityField =
+            typeof(FlashlightController).GetField("baseIntensity", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        public static readonly FieldInfo DeadSetField =
+            typeof(PlayerAvatar).GetField("deadSet", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
         // my dnspy shit notes
 
@@ -152,13 +186,36 @@ namespace cheat
             }
         }
 
+        // Reapplies post process overrides every frame so the game can't silently re-enable them
+        private void ApplyPostProcess()
+        {
+            var obj = GameObject.Find("Game Director/Post Processing/Post Processing Overlay");
+            if (obj == null) return;
+            var volume = obj.GetComponent<PostProcessVolume>();
+            if (volume?.profile == null) return;
+
+            foreach (var setting in volume.profile.settings)
+            {
+                if (setting is Bloom bloom)
+                    bloom.active = !NoBloom;
+                else if (setting is ChromaticAberration ca)
+                    ca.active = !NoChromaticAberration;
+                else if (setting is LensDistortion ld)
+                    ld.active = !NoLensDistortion;
+            }
+        }
+
         void Update()
         {
             if (UnityEngine.Input.GetKeyDown(KeyCode.Insert))
                 MenuOpen = !MenuOpen;
 
+            Cursor.visible = MenuOpen;
+
             var pc = PlayerController.instance;
             var ph = PlayerAvatar.instance?.playerHealth;
+
+            // Combat
 
             if (GodMode && ph != null)
             {
@@ -184,17 +241,99 @@ namespace cheat
                 }
             }
 
+            // Rainbow
+
             if (RainbowColor && PlayerAvatar.instance != null && AssetManager.instance != null)
             {
                 _colorTimer += Time.deltaTime;
-                // if (_colorTimer >= 0.25f) // seconds
                 if (_colorTimer >= RainbowSpeed)
                 {
                     _colorTimer = 0f;
                     int count = AssetManager.instance.playerColors.Count;
                     _colorIndex = (_colorIndex + 1) % count;
                     PlayerAvatar.instance.photonView.RPC("SetColorRPC", RpcTarget.All, _colorIndex);
-                    // PlayerAvatar.instance.photonView.RPC("SetColorRPC", Photon.Realtime.RpcTarget.All, _colorIndex);
+                }
+            }
+
+            // Bright Mode
+            // Reapplied every frame so the game can't reset it under us (e.g. on crouch)
+
+            if (BrightMode)
+            {
+                if (!_brightWasOn)
+                {
+                    // snapshot originals only once on enable
+                    _origAmbientLight = RenderSettings.ambientLight;
+                    _origAmbientIntensity = RenderSettings.ambientIntensity;
+                    _origFog = RenderSettings.fog;
+                    _origFogDensity = RenderSettings.fogDensity;
+                    _origFarClip = Camera.main?.farClipPlane ?? 1000f;
+                    _brightWasOn = true;
+                }
+
+                // force every frame
+                RenderSettings.ambientLight = Color.white;
+                RenderSettings.ambientIntensity = 5f;
+                RenderSettings.fog = false;
+                RenderSettings.fogDensity = 0f;
+                if (Camera.main != null) Camera.main.farClipPlane = 2000f;
+            }
+            else if (_brightWasOn)
+            {
+                RenderSettings.ambientLight = _origAmbientLight;
+                RenderSettings.ambientIntensity = _origAmbientIntensity;
+                RenderSettings.fog = _origFog;
+                RenderSettings.fogDensity = _origFogDensity;
+                if (Camera.main != null) Camera.main.farClipPlane = _origFarClip;
+                _brightWasOn = false;
+            }
+
+            // Noclip
+
+            if (Noclip)
+            {
+                if (!_noclipWasOn)
+                {
+                    _cc = pc?.GetComponent<CharacterController>();
+                    _rb = pc?.GetComponent<Rigidbody>();
+                    if (_cc != null) _cc.enabled = false;
+                    if (_rb != null) { _rb.useGravity = false; _rb.velocity = Vector3.zero; _rb.isKinematic = true; }
+                    _noclipWasOn = true;
+                }
+
+                var cam = Camera.main;
+                if (cam != null && pc != null)
+                {
+                    float h = Input.GetAxis("Horizontal");
+                    float v = Input.GetAxis("Vertical");
+                    float up = Input.GetKey(KeyCode.Space) ? 1f : Input.GetKey(KeyCode.LeftControl) ? -1f : 0f;
+                    Vector3 move = cam.transform.right * h + cam.transform.forward * v + Vector3.up * up;
+                    pc.transform.position += move * NoclipSpeed * Time.deltaTime;
+                }
+            }
+            else if (_noclipWasOn)
+            {
+                if (_cc != null) _cc.enabled = true;
+                if (_rb != null) { _rb.useGravity = true; _rb.isKinematic = false; }
+                _noclipWasOn = false;
+            }
+
+            // Post Process
+            // Reapplied every frame so the game can't silently re-enable effects
+
+            if (NoChromaticAberration || NoBloom || NoLensDistortion)
+                ApplyPostProcess();
+
+            // Flashlight
+
+            if (FlashlightCustomColor || FlashlightIntensity != 3f)
+            {
+                var fc = PlayerAvatar.instance?.GetComponentInChildren<FlashlightController>();
+                if (fc?.spotlight != null)
+                {
+                    if (FlashlightCustomColor)
+                        fc.spotlight.color = FlashlightColor;
+                    BaseIntensityField?.SetValue(fc, FlashlightIntensity);
                 }
             }
         }

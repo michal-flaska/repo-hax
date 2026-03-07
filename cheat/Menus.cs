@@ -4,116 +4,266 @@ namespace cheat
 {
     public static class Menus
     {
+        private const int MenuX = 20;
+        private const int MenuW = 250;
+        private const int ContentX = 30;
+        private const int ContentW = 210;
+        private const int SliderW = 185;
+
+        private const int RowH = 26;
+        private const int SliderH = 18;
+        private const int LabelH = 18;
+        private const int SectionGap = 8;
+        private const int HeaderH = 20;
+        private const int BtnH = 28;
+        private const int BtnGap = 6;
+        private const int TabH = 28;
+        private const int TabY = 48;
+        private const int ContentStartY = 82;
+
+        // 0 = Combat, 1 = ESP, 2 = Misc, 3 = Visual
+        private static int _tab = 0;
+        private static readonly string[] _tabNames = { "Combat", "ESP", "Misc", "Visual" };
+
         public static void DrawMain(CheatBehaviour c)
         {
-            GUI.Box(new Rect(20, 20, 240, 600), "REPO Hax by @pilot2254");
+            Theme.Init();
 
-            int y = 50;
+            int height = CalcHeight(c);
+            GUI.Box(new Rect(MenuX, 20, MenuW, height), "REPO Hax by @pilot2254", Theme.Box);
 
-            // feats
-            c.GodMode = GUI.Toggle(new Rect(30, y, 200, 25), c.GodMode, "God Mode");
-            c.SpeedHack = GUI.Toggle(new Rect(30, y += 28, 200, 25), c.SpeedHack, "Speed Multiplier");
-            c.NoRagdoll = GUI.Toggle(new Rect(30, y += 28, 200, 25), c.NoRagdoll, "No Ragdoll");
-            c.NoBreak = GUI.Toggle(new Rect(30, y += 28, 200, 25), c.NoBreak, "No Break (host only)");
-            c.InfiniteStamina = GUI.Toggle(new Rect(30, y += 28, 200, 25), c.InfiniteStamina, "Infinite Stamina");
-            c.RainbowColor = GUI.Toggle(new Rect(30, y += 28, 200, 25), c.RainbowColor, "Rainbow Color");
-            if (c.RainbowColor)
+            // tab row
+            for (int i = 0; i < _tabNames.Length; i++)
             {
-                c.RainbowSpeed = GUI.HorizontalSlider(new Rect(30, y += 24, 170, 20), c.RainbowSpeed, 0.1f, 2f);
-                GUI.Label(new Rect(30, y += 18, 200, 20), $"Speed: {c.RainbowSpeed:F1}s");
-                y += 4;
+                int tabW = (MenuW - 20) / _tabNames.Length;
+                var style = i == _tab ? Theme.TabActive : Theme.TabInactive;
+                if (GUI.Button(new Rect(ContentX + i * tabW, TabY, tabW, TabH), _tabNames[i], style))
+                    _tab = i;
             }
 
+            int y = ContentStartY;
+
+            switch (_tab)
+            {
+                case 0: DrawCombat(c, ref y); break;
+                case 1: DrawESP(c, ref y); break;
+                case 2: DrawMisc(c, ref y); break;
+                case 3: DrawVisual(c, ref y); break;
+            }
+
+            // always-visible action buttons at the bottom
+            y += SectionGap + 4;
+            if (GUI.Button(new Rect(ContentX, y, 100, BtnH), "Upgrades", Theme.Button)) c.ShowUpgrades = true;
+            if (GUI.Button(new Rect(ContentX + 110, y, 90, BtnH), "TP Extract", Theme.Button)) Helpers.TeleportToExtraction();
+            y += BtnH + BtnGap;
+            if (GUI.Button(new Rect(ContentX, y, 100, BtnH), "Troll Chat", Theme.Button)) c.ShowTrolls = true;
+            if (GUI.Button(new Rect(ContentX + 110, y, 90, BtnH), "Yeet Loot", Theme.Button)) Helpers.YeetValuables(c);
+            y += BtnH + BtnGap;
+            if (GUI.Button(new Rect(ContentX, y, 200, BtnH), "Respawn All", Theme.Button)) Helpers.RespawnDeadPlayers();
+        }
+
+        // Tab content
+
+        private static void DrawCombat(CheatBehaviour c, ref int y)
+        {
+            c.GodMode = Toggle(c.GodMode, "God Mode", ref y);
+            c.NoRagdoll = Toggle(c.NoRagdoll, "No Ragdoll", ref y);
+            c.NoBreak = Toggle(c.NoBreak, "No Break (host)", ref y);
+            c.InfiniteStamina = Toggle(c.InfiniteStamina, "Infinite Stamina", ref y);
+
+            y += SectionGap;
+            c.SpeedHack = Toggle(c.SpeedHack, "Speed Multiplier", ref y);
             if (c.SpeedHack)
             {
-                c.SpeedMultiplier = GUI.HorizontalSlider(new Rect(30, y += 28, 170, 20), c.SpeedMultiplier, 1f, 5f);
-                GUI.Label(new Rect(30, y += 18, 200, 20), $"x{c.SpeedMultiplier:F1} speed");
-                y += 4;
+                c.SpeedMultiplier = GUI.HorizontalSlider(new Rect(ContentX, y, SliderW, SliderH), c.SpeedMultiplier, 1f, 5f); y += SliderH + 2;
+                GUI.Label(new Rect(ContentX, y, ContentW, LabelH), $"x{c.SpeedMultiplier:F1}", Theme.Label); y += LabelH + 4;
             }
-            else
+
+            y += SectionGap;
+            c.RainbowColor = Toggle(c.RainbowColor, "Rainbow Color", ref y);
+            if (c.RainbowColor)
             {
-                y += 8;
+                c.RainbowSpeed = GUI.HorizontalSlider(new Rect(ContentX, y, SliderW, SliderH), c.RainbowSpeed, 0.1f, 2f); y += SliderH + 2;
+                GUI.Label(new Rect(ContentX, y, ContentW, LabelH), $"Speed: {c.RainbowSpeed:F1}s", Theme.Label); y += LabelH + 4;
             }
+        }
 
-            // esp
-            GUI.Label(new Rect(30, y += 8, 200, 18), "── ESP ──");
-            c.EspPlayers = GUI.Toggle(new Rect(30, y += 22, 200, 22), c.EspPlayers, "Player ESP");
-            c.EspEnemies = GUI.Toggle(new Rect(30, y += 26, 200, 22), c.EspEnemies, "Enemy ESP");
-            c.EspLoot = GUI.Toggle(new Rect(30, y += 26, 200, 22), c.EspLoot, "Loot ESP");
-            c.EspExtraction = GUI.Toggle(new Rect(30, y += 26, 200, 22), c.EspExtraction, "Extraction ESP");
+        private static void DrawESP(CheatBehaviour c, ref int y)
+        {
+            c.EspPlayers = Toggle(c.EspPlayers, "Player ESP", ref y);
+            c.EspEnemies = Toggle(c.EspEnemies, "Enemy ESP", ref y);
+            c.EspLoot = Toggle(c.EspLoot, "Loot ESP", ref y);
+            c.EspExtraction = Toggle(c.EspExtraction, "Extraction ESP", ref y);
+            c.EspBoxes = Toggle(c.EspBoxes, "Box ESP", ref y);
+            c.EspSnaplines = Toggle(c.EspSnaplines, "Snap Lines", ref y);
 
-            // distance filter
-            GUI.Label(new Rect(30, y += 30, 200, 18), "── Distance Filter ──");
+            y += SectionGap;
+            Header("── Sub-options ──", ref y);
+            c.EspPlayerDist = Toggle(c.EspPlayerDist, "Player Distance", ref y);
+            c.EspPlayerHp = Toggle(c.EspPlayerHp, "Player HP", ref y);
+            c.EspEnemyDist = Toggle(c.EspEnemyDist, "Enemy Distance", ref y);
+            c.EspEnemyHp = Toggle(c.EspEnemyHp, "Enemy HP", ref y);
+            c.EspLootPrice = Toggle(c.EspLootPrice, "Loot Price", ref y);
 
-            GUI.Label(new Rect(30, y += 22, 200, 18), $"Max: {c.MaxDistance:F0}m");
-            c.MaxDistance = GUI.HorizontalSlider(new Rect(30, y += 18, 180, 20), c.MaxDistance, 5f, 200f);
+            y += SectionGap;
+            Header("── Distance Filter ──", ref y);
+            GUI.Label(new Rect(ContentX, y, ContentW, LabelH), $"Max: {c.MaxDistance:F0}m", Theme.Label); y += LabelH + 2;
+            c.MaxDistance = GUI.HorizontalSlider(new Rect(ContentX, y, SliderW, SliderH), c.MaxDistance, 5f, 200f); y += SliderH + 6;
+            c.DistanceFilterEnemies = Toggle(c.DistanceFilterEnemies, "Filter Enemies", ref y);
+            c.DistanceFilterLoot = Toggle(c.DistanceFilterLoot, "Filter Loot", ref y);
+            c.DistanceFilterPlayers = Toggle(c.DistanceFilterPlayers, "Filter Players", ref y);
 
-            c.DistanceFilterEnemies = GUI.Toggle(new Rect(30, y += 24, 200, 22), c.DistanceFilterEnemies, "Filter Enemies");
-            c.DistanceFilterLoot = GUI.Toggle(new Rect(30, y += 24, 200, 22), c.DistanceFilterLoot, "Filter Loot");
-            c.DistanceFilterPlayers = GUI.Toggle(new Rect(30, y += 24, 200, 22), c.DistanceFilterPlayers, "Filter Players");
-
-            // misc
-            GUI.Label(new Rect(30, y += 30, 200, 18), "── Misc ──");
-            c.HighlightBestLoot = GUI.Toggle(new Rect(30, y += 22, 200, 22), c.HighlightBestLoot, "Highlight Best Loot");
-            c.EnemyNearbyWarning = GUI.Toggle(new Rect(30, y += 26, 200, 22), c.EnemyNearbyWarning, "Enemy Nearby Warning");
-            c.FilterLootByValue = GUI.Toggle(new Rect(30, y += 26, 200, 22), c.FilterLootByValue, "Min Loot Value Filter");
+            y += SectionGap;
+            c.HighlightBestLoot = Toggle(c.HighlightBestLoot, "Highlight Best Loot", ref y);
+            c.EnemyNearbyWarning = Toggle(c.EnemyNearbyWarning, "Enemy Nearby Warning", ref y);
+            c.FilterLootByValue = Toggle(c.FilterLootByValue, "Min Loot Value Filter", ref y);
             if (c.FilterLootByValue)
             {
-                c.MinLootValue = GUI.HorizontalSlider(new Rect(30, y += 24, 180, 20), c.MinLootValue, 0f, 5000f);
-                GUI.Label(new Rect(30, y += 18, 200, 20), $"Min: ${c.MinLootValue:F0}");
-                y += 4;
+                c.MinLootValue = GUI.HorizontalSlider(new Rect(ContentX, y, SliderW, SliderH), c.MinLootValue, 0f, 5000f); y += SliderH + 2;
+                GUI.Label(new Rect(ContentX, y, ContentW, LabelH), $"Min: ${c.MinLootValue:F0}", Theme.Label); y += LabelH + 4;
             }
-            else
+        }
+
+        private static void DrawMisc(CheatBehaviour c, ref int y)
+        {
+            c.Noclip = Toggle(c.Noclip, "Noclip / Fly", ref y);
+            if (c.Noclip)
             {
-                y += 4;
+                c.NoclipSpeed = GUI.HorizontalSlider(new Rect(ContentX, y, SliderW, SliderH), c.NoclipSpeed, 1f, 50f); y += SliderH + 2;
+                GUI.Label(new Rect(ContentX, y, ContentW, LabelH), $"Speed: {c.NoclipSpeed:F0}", Theme.Label); y += LabelH + 4;
+            }
+        }
+
+        private static void DrawVisual(CheatBehaviour c, ref int y)
+        {
+            c.BrightMode = Toggle(c.BrightMode, "Bright Mode", ref y);
+
+            bool nca = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.NoChromaticAberration, "No Chromatic Aberration", Theme.Toggle); y += RowH;
+            bool nb = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.NoBloom, "No Bloom", Theme.Toggle); y += RowH;
+            bool nld = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.NoLensDistortion, "No Lens Distortion", Theme.Toggle); y += RowH;
+            c.NoChromaticAberration = nca;
+            c.NoBloom = nb;
+            c.NoLensDistortion = nld;
+
+            y += SectionGap;
+            Header("── Flashlight ──", ref y);
+            c.FlashlightCustomColor = Toggle(c.FlashlightCustomColor, "Custom Color", ref y);
+            if (c.FlashlightCustomColor)
+            {
+                GUI.Label(new Rect(ContentX, y, 20, LabelH), "R", Theme.Label);
+                c.FlashlightColor.r = GUI.HorizontalSlider(new Rect(ContentX + 20, y, SliderW - 20, SliderH), c.FlashlightColor.r, 0f, 1f); y += SliderH + 2;
+                GUI.Label(new Rect(ContentX, y, 20, LabelH), "G", Theme.Label);
+                c.FlashlightColor.g = GUI.HorizontalSlider(new Rect(ContentX + 20, y, SliderW - 20, SliderH), c.FlashlightColor.g, 0f, 1f); y += SliderH + 2;
+                GUI.Label(new Rect(ContentX, y, 20, LabelH), "B", Theme.Label);
+                c.FlashlightColor.b = GUI.HorizontalSlider(new Rect(ContentX + 20, y, SliderW - 20, SliderH), c.FlashlightColor.b, 0f, 1f); y += SliderH + 4;
+            }
+            c.FlashlightIntensity = GUI.HorizontalSlider(new Rect(ContentX, y, SliderW, SliderH), c.FlashlightIntensity, 1f, 7f); y += SliderH + 2;
+            GUI.Label(new Rect(ContentX, y, ContentW, LabelH), $"Intensity: {c.FlashlightIntensity:F1}", Theme.Label); y += LabelH + 4;
+        }
+
+        // Height calc
+
+        private static int CalcHeight(CheatBehaviour c)
+        {
+            int h = ContentStartY;
+
+            switch (_tab)
+            {
+                case 0: // Combat
+                    h += RowH * 4 + SectionGap;
+                    h += RowH + SectionGap; // speed toggle
+                    if (c.SpeedHack) h += SliderH + 2 + LabelH + 4;
+                    h += RowH; // rainbow toggle
+                    if (c.RainbowColor) h += SliderH + 2 + LabelH + 4;
+                    break;
+
+                case 1: // ESP
+                    h += RowH * 6 + SectionGap;
+                    h += HeaderH + 2 + RowH * 5 + SectionGap;
+                    h += HeaderH + 2 + LabelH + 2 + SliderH + 6 + RowH * 3 + SectionGap;
+                    h += RowH * 3;
+                    if (c.FilterLootByValue) h += SliderH + 2 + LabelH + 4;
+                    break;
+
+                case 2: // Misc
+                    h += RowH;
+                    if (c.Noclip) h += SliderH + 2 + LabelH + 4;
+                    break;
+
+                case 3: // Visual
+                    h += RowH * 4 + SectionGap;
+                    h += HeaderH + 2 + RowH;
+                    if (c.FlashlightCustomColor) h += (SliderH + 2) * 3 + 2;
+                    h += SliderH + 2 + LabelH + 4;
+                    break;
             }
 
-            // buttons
-            y += 30;
-            if (GUI.Button(new Rect(30, y, 100, 28), "Upgrades")) c.ShowUpgrades = true;
-            if (GUI.Button(new Rect(140, y, 90, 28), "TP Extract")) Helpers.TeleportToExtraction();
-            if (GUI.Button(new Rect(30, y + 33, 100, 25), "Troll Chat")) c.ShowTrolls = true;
-            if (GUI.Button(new Rect(140, y + 33, 90, 25), "Yeet Loot")) Helpers.YeetValuables(c);
+            // bottom buttons always present
+            h += SectionGap + 4 + BtnH + BtnGap + BtnH + BtnGap + BtnH + 12;
+            return h;
         }
+
+        // Sub-menus
 
         public static void DrawUpgrades(CheatBehaviour c)
         {
-            GUI.Box(new Rect(20, 20, 220, 320), "Upgrades");
+            Theme.Init();
 
-            GUI.Label(new Rect(30, 50, 80, 20), "Set value:");
-            if (GUI.Button(new Rect(110, 48, 30, 22), "0")) c.UpgradeValue = 0;
-            if (GUI.Button(new Rect(145, 48, 30, 22), "10")) c.UpgradeValue = 10;
-            if (GUI.Button(new Rect(180, 48, 30, 22), "50")) c.UpgradeValue = 50;
+            GUI.Box(new Rect(MenuX, 20, 220, 320), "Upgrades", Theme.Box);
 
-            GUI.Label(new Rect(30, 75, 180, 20), $"Current: {c.UpgradeValue}");
+            GUI.Label(new Rect(30, 50, 80, 20), "Set value:", Theme.Label);
+            if (GUI.Button(new Rect(110, 48, 30, 22), "0", Theme.Button)) c.UpgradeValue = 0;
+            if (GUI.Button(new Rect(145, 48, 30, 22), "10", Theme.Button)) c.UpgradeValue = 10;
+            if (GUI.Button(new Rect(180, 48, 30, 22), "50", Theme.Button)) c.UpgradeValue = 50;
 
-            int btnY = 100, btnH = 28, gap = 33;
-            if (GUI.Button(new Rect(30, btnY, 180, btnH), "Health")) Helpers.SetUpgrade("playerUpgradeHealth", c);
-            if (GUI.Button(new Rect(30, btnY + gap, 180, btnH), "Stamina")) Helpers.SetUpgrade("playerUpgradeStamina", c);
-            if (GUI.Button(new Rect(30, btnY + gap * 2, 180, btnH), "Speed")) Helpers.SetUpgrade("playerUpgradeSpeed", c);
-            if (GUI.Button(new Rect(30, btnY + gap * 3, 180, btnH), "Strength")) Helpers.SetUpgrade("playerUpgradeStrength", c);
-            if (GUI.Button(new Rect(30, btnY + gap * 4, 180, btnH), "Jump")) Helpers.SetUpgrade("playerUpgradeExtraJump", c);
-            if (GUI.Button(new Rect(30, btnY + gap * 5, 180, btnH), "Range")) Helpers.SetUpgrade("playerUpgradeRange", c);
+            GUI.Label(new Rect(30, 75, 180, 20), $"Current: {c.UpgradeValue}", Theme.Label);
 
-            if (GUI.Button(new Rect(30, 290, 180, 25), "Back"))
-                c.ShowUpgrades = false;
+            int btnY = 100;
+            if (GUI.Button(new Rect(30, btnY, 180, BtnH), "Health", Theme.Button)) Helpers.SetUpgrade("playerUpgradeHealth", c);
+            if (GUI.Button(new Rect(30, btnY + 33, 180, BtnH), "Stamina", Theme.Button)) Helpers.SetUpgrade("playerUpgradeStamina", c);
+            if (GUI.Button(new Rect(30, btnY + 66, 180, BtnH), "Speed", Theme.Button)) Helpers.SetUpgrade("playerUpgradeSpeed", c);
+            if (GUI.Button(new Rect(30, btnY + 99, 180, BtnH), "Strength", Theme.Button)) Helpers.SetUpgrade("playerUpgradeStrength", c);
+            if (GUI.Button(new Rect(30, btnY + 132, 180, BtnH), "Jump", Theme.Button)) Helpers.SetUpgrade("playerUpgradeExtraJump", c);
+            if (GUI.Button(new Rect(30, btnY + 165, 180, BtnH), "Range", Theme.Button)) Helpers.SetUpgrade("playerUpgradeRange", c);
+
+            if (GUI.Button(new Rect(30, 290, 180, 25), "Back", Theme.Button)) c.ShowUpgrades = false;
         }
 
         public static void DrawTrolls(CheatBehaviour c)
         {
-            GUI.Box(new Rect(20, 20, 220, 280), "Troll Chat");
-            GUI.Label(new Rect(30, 48, 180, 20), "multiplayer only");
+            Theme.Init();
 
-            int btnY = 70, btnH = 28, gap = 33;
-            if (GUI.Button(new Rect(30, btnY, 180, btnH), "Flashbang")) Helpers.SendChat("<size=-111111>hi");
-            if (GUI.Button(new Rect(30, btnY + gap, 180, btnH), "Big Text")) Helpers.SendChat("<size=999>HELLO");
-            if (GUI.Button(new Rect(30, btnY + gap * 2, 180, btnH), "Invisible")) Helpers.SendChat("<alpha=#00>ghost message");
-            if (GUI.Button(new Rect(30, btnY + gap * 3, 180, btnH), "Spam Hello")) c.StartCoroutine(Helpers.SpamChat("hello", 3));
-            if (GUI.Button(new Rect(30, btnY + gap * 4, 180, btnH), "Max Chaos")) Helpers.SendChat("<size=-111111><size=999>CHAOS");
-            if (GUI.Button(new Rect(30, btnY + gap * 5, 180, btnH), "Custom...")) Helpers.SendChat("<size=-111111>custom troll");
+            int btnY = 72;
+            int rows = 6;
+            int backY = btnY + rows * 33 + 6;
+            int boxH = backY + 25 + 12;
 
-            if (GUI.Button(new Rect(30, 248, 180, 25), "Back"))
-                c.ShowTrolls = false;
+            GUI.Box(new Rect(MenuX, 20, 220, boxH), "Troll Chat", Theme.Box);
+            GUI.Label(new Rect(30, 48, 180, 20), "multiplayer only", Theme.Label);
+
+            if (GUI.Button(new Rect(30, btnY, 180, BtnH), "Flashbang", Theme.Button)) Helpers.SendChat("<size=-111111>hi");
+            if (GUI.Button(new Rect(30, btnY + 33, 180, BtnH), "Big Text", Theme.Button)) Helpers.SendChat("<size=999>HELLO");
+            if (GUI.Button(new Rect(30, btnY + 66, 180, BtnH), "Invisible", Theme.Button)) Helpers.SendChat("<alpha=#00>ghost message");
+            if (GUI.Button(new Rect(30, btnY + 99, 180, BtnH), "Spam Hello", Theme.Button)) c.StartCoroutine(Helpers.SpamChat("hello", 3));
+            if (GUI.Button(new Rect(30, btnY + 132, 180, BtnH), "Max Chaos", Theme.Button)) Helpers.SendChat("<size=-111111><size=999>CHAOS");
+            if (GUI.Button(new Rect(30, btnY + 165, 180, BtnH), "Custom...", Theme.Button)) Helpers.SendChat("<size=-111111>custom troll");
+
+            if (GUI.Button(new Rect(30, backY, 180, 25), "Back", Theme.Button)) c.ShowTrolls = false;
+        }
+
+        // Helpers
+
+        private static bool Toggle(bool val, string label, ref int y)
+        {
+            bool result = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), val, label, Theme.Toggle);
+            y += RowH;
+            return result;
+        }
+
+        private static void Header(string text, ref int y)
+        {
+            GUI.Label(new Rect(ContentX, y, ContentW, HeaderH), text, Theme.HeaderLabel);
+            y += HeaderH + 2;
         }
     }
 }
