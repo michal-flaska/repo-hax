@@ -1,8 +1,10 @@
 ﻿using Photon.Pun;
+using Photon.Realtime;
 using System.Collections;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Rendering.PostProcessing;
 
 namespace cheat
 {
@@ -70,6 +72,24 @@ namespace cheat
         private float _origFogDensity;
         private float _origFarClip;
 
+        // noclip/fly
+        public bool Noclip = false;
+        public float NoclipSpeed = 10f;
+        private bool _noclipWasOn = false;
+        private CharacterController _cc;
+        private Rigidbody _rb;
+
+        // clear UI
+        public bool NoChromaticAberration = false;
+        public bool NoBloom = false;
+        public bool NoLensDistortion = false;
+        public bool _postProcessDirty = false;
+
+        // flashlight
+        public bool FlashlightCustomColor = false;
+        public Color FlashlightColor = Color.white;
+        public float FlashlightIntensity = 3f;
+
         // reflection fields
         public static readonly FieldInfo HealthField =
             typeof(PlayerHealth).GetField("health", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
@@ -94,6 +114,12 @@ namespace cheat
 
         public static readonly FieldInfo EnemyHealthCurrentField =
             typeof(EnemyHealth).GetField("healthCurrent", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+        private static readonly FieldInfo BaseIntensityField =
+            typeof(FlashlightController).GetField("baseIntensity", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        public static readonly FieldInfo DeadSetField =
+            typeof(PlayerAvatar).GetField("deadSet", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
         // my dnspy shit notes
 
@@ -159,6 +185,24 @@ namespace cheat
                 LocalPlayer = Players.FirstOrDefault(p => p.cameraGameObjectLocal != null);
 
                 yield return new WaitForSeconds(3f);
+            }
+        }
+
+        private void RefreshPostProcess()
+        {
+            var obj = GameObject.Find("Game Director/Post Processing/Post Processing Overlay");
+            if (obj == null) return;
+            var volume = obj.GetComponent<PostProcessVolume>();
+            if (volume?.profile == null) return;
+
+            foreach (var setting in volume.profile.settings)
+            {
+                if (setting is Bloom bloom)
+                    bloom.active = !NoBloom;
+                else if (setting is ChromaticAberration ca)
+                    ca.active = !NoChromaticAberration;
+                else if (setting is LensDistortion ld)
+                    ld.active = !NoLensDistortion;
             }
         }
 
@@ -237,6 +281,52 @@ namespace cheat
                 RenderSettings.fogDensity = _origFogDensity;
                 if (Camera.main != null) Camera.main.farClipPlane = _origFarClip;
                 _brightWasOn = false;
+            }
+
+            if (Noclip)
+            {
+                if (!_noclipWasOn)
+                {
+                    _cc = pc?.GetComponent<CharacterController>();
+                    _rb = pc?.GetComponent<Rigidbody>();
+                    if (_cc != null) _cc.enabled = false;
+                    if (_rb != null) { _rb.useGravity = false; _rb.velocity = Vector3.zero; _rb.isKinematic = true; }
+                    _noclipWasOn = true;
+                }
+
+                // move relative to camera direction
+                var cam = Camera.main;
+                if (cam != null && pc != null)
+                {
+                    float h = Input.GetAxis("Horizontal");
+                    float v = Input.GetAxis("Vertical");
+                    float up = Input.GetKey(KeyCode.Space) ? 1f : Input.GetKey(KeyCode.LeftControl) ? -1f : 0f;
+                    Vector3 move = cam.transform.right * h + cam.transform.forward * v + Vector3.up * up;
+                    pc.transform.position += move * NoclipSpeed * Time.deltaTime;
+                }
+            }
+            else if (_noclipWasOn)
+            {
+                if (_cc != null) _cc.enabled = true;
+                if (_rb != null) { _rb.useGravity = true; _rb.isKinematic = false; }
+                _noclipWasOn = false;
+            }
+
+            if (_postProcessDirty)
+            {
+                RefreshPostProcess();
+                _postProcessDirty = false;
+            }
+
+            if (FlashlightCustomColor || FlashlightIntensity != 3f)
+            {
+                var fc = PlayerAvatar.instance?.GetComponentInChildren<FlashlightController>();
+                if (fc?.spotlight != null)
+                {
+                    if (FlashlightCustomColor)
+                        fc.spotlight.color = FlashlightColor;
+                    BaseIntensityField?.SetValue(fc, FlashlightIntensity);
+                }
             }
         }
 

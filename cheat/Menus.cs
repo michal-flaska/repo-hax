@@ -67,11 +67,29 @@ namespace cheat
             c.EnemyNearbyWarning = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.EnemyNearbyWarning, "Enemy Nearby Warning", Theme.Toggle); y += RowH;
             c.FilterLootByValue = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.FilterLootByValue, "Min Loot Value Filter", Theme.Toggle); y += RowH;
             c.BrightMode = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.BrightMode, "Bright Mode", Theme.Toggle); y += RowH;
+            bool nca = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.NoChromaticAberration, "No Chromatic Aberration", Theme.Toggle); y += RowH;
+            bool nb = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.NoBloom, "No Bloom", Theme.Toggle); y += RowH;
+            bool nld = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.NoLensDistortion, "No Lens Distortion", Theme.Toggle); y += RowH;
+
+            if (nca != c.NoChromaticAberration || nb != c.NoBloom || nld != c.NoLensDistortion)
+            {
+                c.NoChromaticAberration = nca;
+                c.NoBloom = nb;
+                c.NoLensDistortion = nld;
+                c._postProcessDirty = true;
+            }
+            c.Noclip = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.Noclip, "Noclip / Fly", Theme.Toggle); y += RowH;
 
             if (c.FilterLootByValue)
             {
                 c.MinLootValue = GUI.HorizontalSlider(new Rect(ContentX, y, SliderW, SliderH), c.MinLootValue, 0f, 5000f); y += SliderH + 2;
                 GUI.Label(new Rect(ContentX, y, ContentW, LabelH), $"Min: ${c.MinLootValue:F0}", Theme.Label); y += LabelH + 4;
+            }
+
+            if (c.Noclip)
+            {
+                c.NoclipSpeed = GUI.HorizontalSlider(new Rect(ContentX, y, SliderW, SliderH), c.NoclipSpeed, 1f, 50f); y += SliderH + 2;
+                GUI.Label(new Rect(ContentX, y, ContentW, LabelH), $"Speed: {c.NoclipSpeed:F0}", Theme.Label); y += LabelH + 4;
             }
 
             //if (c.BrightMode)
@@ -80,12 +98,32 @@ namespace cheat
             //    GUI.Label(new Rect(ContentX, y, ContentW, LabelH), $"Intensity: {c.BrightIntensity:F1}", Theme.Label); y += LabelH + 4;
             //}
 
+            y += SectionGap;
+            GUI.Label(new Rect(ContentX, y, ContentW, HeaderH), "── Flashlight ──", Theme.HeaderLabel); y += HeaderH + 2;
+            c.FlashlightCustomColor = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.FlashlightCustomColor, "Custom Color", Theme.Toggle); y += RowH;
+
+            if (c.FlashlightCustomColor)
+            {
+                // R G B sliders
+                GUI.Label(new Rect(ContentX, y, 20, LabelH), "R", Theme.Label);
+                c.FlashlightColor.r = GUI.HorizontalSlider(new Rect(ContentX + 20, y, SliderW - 20, SliderH), c.FlashlightColor.r, 0f, 1f); y += SliderH + 2;
+                GUI.Label(new Rect(ContentX, y, 20, LabelH), "G", Theme.Label);
+                c.FlashlightColor.g = GUI.HorizontalSlider(new Rect(ContentX + 20, y, SliderW - 20, SliderH), c.FlashlightColor.g, 0f, 1f); y += SliderH + 2;
+                GUI.Label(new Rect(ContentX, y, 20, LabelH), "B", Theme.Label);
+                c.FlashlightColor.b = GUI.HorizontalSlider(new Rect(ContentX + 20, y, SliderW - 20, SliderH), c.FlashlightColor.b, 0f, 1f); y += SliderH + 4;
+            }
+
+            c.FlashlightIntensity = GUI.HorizontalSlider(new Rect(ContentX, y, SliderW, SliderH), c.FlashlightIntensity, 1f, 7f); y += SliderH + 2;
+            GUI.Label(new Rect(ContentX, y, ContentW, LabelH), $"Intensity: {c.FlashlightIntensity:F1}", Theme.Label); y += LabelH + 4;
+
             y += SectionGap + 4;
             if (GUI.Button(new Rect(ContentX, y, 100, BtnH), "Upgrades", Theme.Button)) c.ShowUpgrades = true;
             if (GUI.Button(new Rect(ContentX + 110, y, 90, BtnH), "TP Extract", Theme.Button)) Helpers.TeleportToExtraction();
             y += BtnH + BtnGap;
             if (GUI.Button(new Rect(ContentX, y, 100, BtnH), "Troll Chat", Theme.Button)) c.ShowTrolls = true;
             if (GUI.Button(new Rect(ContentX + 110, y, 90, BtnH), "Yeet Loot", Theme.Button)) Helpers.YeetValuables(c);
+            y += BtnH + BtnGap;
+            if (GUI.Button(new Rect(ContentX, y, 100, BtnH), "Respawn All", Theme.Button)) Helpers.RespawnDeadPlayers();
         }
 
         private static int CalcMainHeight(CheatBehaviour c)
@@ -96,10 +134,13 @@ namespace cheat
             if (c.SpeedHack) h += SliderH + 2 + LabelH + 4;
             h += SectionGap + HeaderH + 2 + RowH * 4;
             h += SectionGap + HeaderH + 2 + LabelH + 2 + SliderH + 6 + RowH * 3;
-            h += SectionGap + HeaderH + 2 + RowH * 3;
+            h += SectionGap + HeaderH + 2 + RowH * 6;
             if (c.FilterLootByValue) h += SliderH + 2 + LabelH + 4;
-            h += SectionGap + 4 + BtnH + BtnGap + BtnH + 12;
+            h += SectionGap + 4 + BtnH + BtnGap + BtnH + BtnGap + BtnH + 12;
             //if (c.BrightMode) h += SliderH + 2 + LabelH + 4;
+            if (c.Noclip) h += SliderH + 2 + LabelH + 4;
+            h += SectionGap + HeaderH + 2 + RowH + SliderH + 2 + LabelH + 4; // flashlight base
+            if (c.FlashlightCustomColor) h += (SliderH + 2) * 3 + 2; // RGB sliders
             return h;
         }
 
