@@ -67,11 +67,18 @@ namespace cheat
             c.EnemyNearbyWarning = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.EnemyNearbyWarning, "Enemy Nearby Warning", Theme.Toggle); y += RowH;
             c.FilterLootByValue = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.FilterLootByValue, "Min Loot Value Filter", Theme.Toggle); y += RowH;
             c.BrightMode = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.BrightMode, "Bright Mode", Theme.Toggle); y += RowH;
+            c.Noclip = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.Noclip, "Noclip / Fly", Theme.Toggle); y += RowH;
 
             if (c.FilterLootByValue)
             {
                 c.MinLootValue = GUI.HorizontalSlider(new Rect(ContentX, y, SliderW, SliderH), c.MinLootValue, 0f, 5000f); y += SliderH + 2;
                 GUI.Label(new Rect(ContentX, y, ContentW, LabelH), $"Min: ${c.MinLootValue:F0}", Theme.Label); y += LabelH + 4;
+            }
+
+            if (c.Noclip)
+            {
+                c.NoclipSpeed = GUI.HorizontalSlider(new Rect(ContentX, y, SliderW, SliderH), c.NoclipSpeed, 1f, 50f); y += SliderH + 2;
+                GUI.Label(new Rect(ContentX, y, ContentW, LabelH), $"Speed: {c.NoclipSpeed:F0}", Theme.Label); y += LabelH + 4;
             }
 
             //if (c.BrightMode)
@@ -100,6 +107,7 @@ namespace cheat
             if (c.FilterLootByValue) h += SliderH + 2 + LabelH + 4;
             h += SectionGap + 4 + BtnH + BtnGap + BtnH + 12;
             //if (c.BrightMode) h += SliderH + 2 + LabelH + 4;
+            if (c.Noclip) h += SliderH + 2 + LabelH + 4;
             return h;
         }
 

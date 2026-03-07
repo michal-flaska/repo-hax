@@ -70,6 +70,13 @@ namespace cheat
         private float _origFogDensity;
         private float _origFarClip;
 
+        // noclip/fly
+        public bool Noclip = false;
+        public float NoclipSpeed = 10f;
+        private bool _noclipWasOn = false;
+        private CharacterController _cc;
+        private Rigidbody _rb;
+
         // reflection fields
         public static readonly FieldInfo HealthField =
             typeof(PlayerHealth).GetField("health", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
@@ -237,6 +244,35 @@ namespace cheat
                 RenderSettings.fogDensity = _origFogDensity;
                 if (Camera.main != null) Camera.main.farClipPlane = _origFarClip;
                 _brightWasOn = false;
+            }
+
+            if (Noclip)
+            {
+                if (!_noclipWasOn)
+                {
+                    _cc = pc?.GetComponent<CharacterController>();
+                    _rb = pc?.GetComponent<Rigidbody>();
+                    if (_cc != null) _cc.enabled = false;
+                    if (_rb != null) { _rb.useGravity = false; _rb.velocity = Vector3.zero; _rb.isKinematic = true; }
+                    _noclipWasOn = true;
+                }
+
+                // move relative to camera direction
+                var cam = Camera.main;
+                if (cam != null && pc != null)
+                {
+                    float h = Input.GetAxis("Horizontal");
+                    float v = Input.GetAxis("Vertical");
+                    float up = Input.GetKey(KeyCode.Space) ? 1f : Input.GetKey(KeyCode.LeftControl) ? -1f : 0f;
+                    Vector3 move = cam.transform.right * h + cam.transform.forward * v + Vector3.up * up;
+                    pc.transform.position += move * NoclipSpeed * Time.deltaTime;
+                }
+            }
+            else if (_noclipWasOn)
+            {
+                if (_cc != null) _cc.enabled = true;
+                if (_rb != null) { _rb.useGravity = true; _rb.isKinematic = false; }
+                _noclipWasOn = false;
             }
         }
 
