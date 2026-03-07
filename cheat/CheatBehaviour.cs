@@ -18,16 +18,14 @@ namespace cheat
         public bool NoBreak = false;
         public bool InfiniteStamina = false;
         public bool RainbowColor = false;
-        public float RainbowSpeed = 0.5f; // seconds per color change
+        public float RainbowSpeed = 0.5f;
         public bool BrightMode = false;
-        //public float BrightIntensity = 3f;
 
         // esp toggles
         public bool EspPlayers = false;
         public bool EspEnemies = false;
         public bool EspLoot = false;
         public bool EspExtraction = false;
-
         public bool EspBoxes = false;
         public bool EspSnaplines = false;
 
@@ -48,6 +46,16 @@ namespace cheat
         public bool EnemyNearbyWarning = false;
         public float MinLootValue = 0f;
         public bool FilterLootByValue = false;
+        public bool NoChromaticAberration = false;
+        public bool NoBloom = false;
+        public bool NoLensDistortion = false;
+        public bool Noclip = false;
+        public float NoclipSpeed = 10f;
+
+        // flashlight
+        public bool FlashlightCustomColor = false;
+        public Color FlashlightColor = Color.white;
+        public float FlashlightIntensity = 3f;
 
         // menu state
         public bool MenuOpen = false;
@@ -67,31 +75,18 @@ namespace cheat
         private float _colorTimer = 0f;
         private int _colorIndex = 0;
 
-        // private fields for storing originals
+        // bright mode state
+        private bool _brightWasOn = false;
         private Color _origAmbientLight;
         private float _origAmbientIntensity;
-        private bool _brightWasOn = false;
         private bool _origFog;
         private float _origFogDensity;
         private float _origFarClip;
 
-        // noclip/fly
-        public bool Noclip = false;
-        public float NoclipSpeed = 10f;
+        // noclip state
         private bool _noclipWasOn = false;
         private CharacterController _cc;
         private Rigidbody _rb;
-
-        // clear UI
-        public bool NoChromaticAberration = false;
-        public bool NoBloom = false;
-        public bool NoLensDistortion = false;
-        public bool _postProcessDirty = false;
-
-        // flashlight
-        public bool FlashlightCustomColor = false;
-        public Color FlashlightColor = Color.white;
-        public float FlashlightIntensity = 3f;
 
         // reflection fields
         public static readonly FieldInfo HealthField =
@@ -191,7 +186,8 @@ namespace cheat
             }
         }
 
-        private void RefreshPostProcess()
+        // Reapplies post process overrides every frame so the game can't silently re-enable them
+        private void ApplyPostProcess()
         {
             var obj = GameObject.Find("Game Director/Post Processing/Post Processing Overlay");
             if (obj == null) return;
@@ -215,10 +211,11 @@ namespace cheat
                 MenuOpen = !MenuOpen;
 
             Cursor.visible = MenuOpen;
-            // Cursor.lockState = MenuOpen ? CursorLockMode.None : CursorLockMode.Locked;
 
             var pc = PlayerController.instance;
             var ph = PlayerAvatar.instance?.playerHealth;
+
+            // Combat
 
             if (GodMode && ph != null)
             {
@@ -244,37 +241,42 @@ namespace cheat
                 }
             }
 
+            // Rainbow
+
             if (RainbowColor && PlayerAvatar.instance != null && AssetManager.instance != null)
             {
                 _colorTimer += Time.deltaTime;
-                // if (_colorTimer >= 0.25f) // seconds
                 if (_colorTimer >= RainbowSpeed)
                 {
                     _colorTimer = 0f;
                     int count = AssetManager.instance.playerColors.Count;
                     _colorIndex = (_colorIndex + 1) % count;
                     PlayerAvatar.instance.photonView.RPC("SetColorRPC", RpcTarget.All, _colorIndex);
-                    // PlayerAvatar.instance.photonView.RPC("SetColorRPC", Photon.Realtime.RpcTarget.All, _colorIndex);
                 }
             }
+
+            // Bright Mode
+            // Reapplied every frame so the game can't reset it under us (e.g. on crouch)
 
             if (BrightMode)
             {
                 if (!_brightWasOn)
                 {
+                    // snapshot originals only once on enable
                     _origAmbientLight = RenderSettings.ambientLight;
                     _origAmbientIntensity = RenderSettings.ambientIntensity;
                     _origFog = RenderSettings.fog;
                     _origFogDensity = RenderSettings.fogDensity;
                     _origFarClip = Camera.main?.farClipPlane ?? 1000f;
                     _brightWasOn = true;
-
-                    RenderSettings.ambientLight = Color.white;
-                    RenderSettings.ambientIntensity = 5f;
-                    RenderSettings.fog = false;
-                    RenderSettings.fogDensity = 0f;
-                    if (Camera.main != null) Camera.main.farClipPlane = 2000f;
                 }
+
+                // force every frame
+                RenderSettings.ambientLight = Color.white;
+                RenderSettings.ambientIntensity = 5f;
+                RenderSettings.fog = false;
+                RenderSettings.fogDensity = 0f;
+                if (Camera.main != null) Camera.main.farClipPlane = 2000f;
             }
             else if (_brightWasOn)
             {
@@ -285,6 +287,8 @@ namespace cheat
                 if (Camera.main != null) Camera.main.farClipPlane = _origFarClip;
                 _brightWasOn = false;
             }
+
+            // Noclip
 
             if (Noclip)
             {
@@ -297,7 +301,6 @@ namespace cheat
                     _noclipWasOn = true;
                 }
 
-                // move relative to camera direction
                 var cam = Camera.main;
                 if (cam != null && pc != null)
                 {
@@ -315,11 +318,13 @@ namespace cheat
                 _noclipWasOn = false;
             }
 
-            if (_postProcessDirty)
-            {
-                RefreshPostProcess();
-                _postProcessDirty = false;
-            }
+            // Post Process
+            // Reapplied every frame so the game can't silently re-enable effects
+
+            if (NoChromaticAberration || NoBloom || NoLensDistortion)
+                ApplyPostProcess();
+
+            // Flashlight
 
             if (FlashlightCustomColor || FlashlightIntensity != 3f)
             {

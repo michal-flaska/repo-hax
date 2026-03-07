@@ -4,19 +4,19 @@ namespace cheat
 {
     public static class Theme
     {
-        // colors
-        public static readonly Color Accent = new Color(1f, 0f, 0.467f, 1f);   // #ff0077
-        public static readonly Color AccentDim = new Color(0.6f, 0f, 0.28f, 1f);  // darker accent for hover/active
+        public static readonly Color Accent = new Color(1f, 0f, 0.467f, 1f);
+        public static readonly Color AccentDim = new Color(0.6f, 0f, 0.28f, 1f);
         public static readonly Color BgColor = new Color(0.07f, 0.07f, 0.07f, 0.96f);
         public static readonly Color TextColor = Color.white;
         public static readonly Color DimText = new Color(0.65f, 0.65f, 0.65f, 1f);
 
-        // styles
         public static GUIStyle Box;
         public static GUIStyle Button;
         public static GUIStyle Toggle;
         public static GUIStyle Label;
         public static GUIStyle HeaderLabel;
+        public static GUIStyle TabActive;
+        public static GUIStyle TabInactive;
 
         private static bool _initialized;
 
@@ -63,9 +63,28 @@ namespace cheat
             HeaderLabel.fontSize = 11;
             HeaderLabel.fontStyle = FontStyle.Bold;
             HeaderLabel.alignment = TextAnchor.MiddleCenter;
+
+            // active tab: accent background
+            TabActive = new GUIStyle(GUI.skin.button);
+            TabActive.normal.background = MakeTex(AccentDim);
+            TabActive.hover.background = MakeTex(AccentDim);
+            TabActive.normal.textColor = Color.white;
+            TabActive.hover.textColor = Color.white;
+            TabActive.fontSize = 11;
+            TabActive.fontStyle = FontStyle.Bold;
+            TabActive.alignment = TextAnchor.MiddleCenter;
+
+            // inactive tab: dim background
+            TabInactive = new GUIStyle(GUI.skin.button);
+            TabInactive.normal.background = MakeTex(new Color(0.13f, 0.13f, 0.13f, 1f));
+            TabInactive.hover.background = MakeTex(new Color(0.2f, 0f, 0.1f, 1f));
+            TabInactive.normal.textColor = DimText;
+            TabInactive.hover.textColor = Accent;
+            TabInactive.fontSize = 11;
+            TabInactive.fontStyle = FontStyle.Bold;
+            TabInactive.alignment = TextAnchor.MiddleCenter;
         }
 
-        // creates a 1x1 solid color texture
         private static Texture2D MakeTex(Color col)
         {
             var tex = new Texture2D(1, 1);
