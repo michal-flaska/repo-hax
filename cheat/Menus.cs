@@ -67,6 +67,17 @@ namespace cheat
             c.EnemyNearbyWarning = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.EnemyNearbyWarning, "Enemy Nearby Warning", Theme.Toggle); y += RowH;
             c.FilterLootByValue = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.FilterLootByValue, "Min Loot Value Filter", Theme.Toggle); y += RowH;
             c.BrightMode = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.BrightMode, "Bright Mode", Theme.Toggle); y += RowH;
+            bool nca = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.NoChromaticAberration, "No Chromatic Aberration", Theme.Toggle); y += RowH;
+            bool nb = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.NoBloom, "No Bloom", Theme.Toggle); y += RowH;
+            bool nld = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.NoLensDistortion, "No Lens Distortion", Theme.Toggle); y += RowH;
+
+            if (nca != c.NoChromaticAberration || nb != c.NoBloom || nld != c.NoLensDistortion)
+            {
+                c.NoChromaticAberration = nca;
+                c.NoBloom = nb;
+                c.NoLensDistortion = nld;
+                c._postProcessDirty = true;
+            }
             c.Noclip = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.Noclip, "Noclip / Fly", Theme.Toggle); y += RowH;
 
             if (c.FilterLootByValue)
@@ -103,7 +114,7 @@ namespace cheat
             if (c.SpeedHack) h += SliderH + 2 + LabelH + 4;
             h += SectionGap + HeaderH + 2 + RowH * 4;
             h += SectionGap + HeaderH + 2 + LabelH + 2 + SliderH + 6 + RowH * 3;
-            h += SectionGap + HeaderH + 2 + RowH * 3;
+            h += SectionGap + HeaderH + 2 + RowH * 6;
             if (c.FilterLootByValue) h += SliderH + 2 + LabelH + 4;
             h += SectionGap + 4 + BtnH + BtnGap + BtnH + 12;
             //if (c.BrightMode) h += SliderH + 2 + LabelH + 4;

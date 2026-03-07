@@ -1,8 +1,10 @@
 ﻿using Photon.Pun;
+using Photon.Realtime;
 using System.Collections;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Rendering.PostProcessing;
 
 namespace cheat
 {
@@ -76,6 +78,12 @@ namespace cheat
         private bool _noclipWasOn = false;
         private CharacterController _cc;
         private Rigidbody _rb;
+
+        // clear UI
+        public bool NoChromaticAberration = false;
+        public bool NoBloom = false;
+        public bool NoLensDistortion = false;
+        public bool _postProcessDirty = false;
 
         // reflection fields
         public static readonly FieldInfo HealthField =
@@ -166,6 +174,24 @@ namespace cheat
                 LocalPlayer = Players.FirstOrDefault(p => p.cameraGameObjectLocal != null);
 
                 yield return new WaitForSeconds(3f);
+            }
+        }
+
+        private void RefreshPostProcess()
+        {
+            var obj = GameObject.Find("Game Director/Post Processing/Post Processing Overlay");
+            if (obj == null) return;
+            var volume = obj.GetComponent<PostProcessVolume>();
+            if (volume?.profile == null) return;
+
+            foreach (var setting in volume.profile.settings)
+            {
+                if (setting is Bloom bloom)
+                    bloom.active = !NoBloom;
+                else if (setting is ChromaticAberration ca)
+                    ca.active = !NoChromaticAberration;
+                else if (setting is LensDistortion ld)
+                    ld.active = !NoLensDistortion;
             }
         }
 
@@ -273,6 +299,12 @@ namespace cheat
                 if (_cc != null) _cc.enabled = true;
                 if (_rb != null) { _rb.useGravity = true; _rb.isKinematic = false; }
                 _noclipWasOn = false;
+            }
+
+            if (_postProcessDirty)
+            {
+                RefreshPostProcess();
+                _postProcessDirty = false;
             }
         }
 
