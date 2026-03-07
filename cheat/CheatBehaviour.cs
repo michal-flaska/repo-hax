@@ -118,6 +118,9 @@ namespace cheat
         private static readonly FieldInfo BaseIntensityField =
             typeof(FlashlightController).GetField("baseIntensity", BindingFlags.Instance | BindingFlags.NonPublic);
 
+        public static readonly FieldInfo DeadSetField =
+            typeof(PlayerAvatar).GetField("deadSet", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
         // my dnspy shit notes
 
         // PlayerHealth.health        - Token: 0x04002377, internal int, default 100

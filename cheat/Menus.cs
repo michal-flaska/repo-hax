@@ -122,6 +122,8 @@ namespace cheat
             y += BtnH + BtnGap;
             if (GUI.Button(new Rect(ContentX, y, 100, BtnH), "Troll Chat", Theme.Button)) c.ShowTrolls = true;
             if (GUI.Button(new Rect(ContentX + 110, y, 90, BtnH), "Yeet Loot", Theme.Button)) Helpers.YeetValuables(c);
+            y += BtnH + BtnGap;
+            if (GUI.Button(new Rect(ContentX, y, 100, BtnH), "Respawn All", Theme.Button)) Helpers.RespawnDeadPlayers();
         }
 
         private static int CalcMainHeight(CheatBehaviour c)
@@ -134,7 +136,7 @@ namespace cheat
             h += SectionGap + HeaderH + 2 + LabelH + 2 + SliderH + 6 + RowH * 3;
             h += SectionGap + HeaderH + 2 + RowH * 6;
             if (c.FilterLootByValue) h += SliderH + 2 + LabelH + 4;
-            h += SectionGap + 4 + BtnH + BtnGap + BtnH + 12;
+            h += SectionGap + 4 + BtnH + BtnGap + BtnH + BtnGap + BtnH + 12;
             //if (c.BrightMode) h += SliderH + 2 + LabelH + 4;
             if (c.Noclip) h += SliderH + 2 + LabelH + 4;
             h += SectionGap + HeaderH + 2 + RowH + SliderH + 2 + LabelH + 4; // flashlight base

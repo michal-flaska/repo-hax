@@ -61,5 +61,25 @@ namespace cheat
                 rb.AddForce(dir * 25f, ForceMode.Impulse);
             }
         }
+
+        public static void RespawnDeadPlayers()
+        {
+            var spawnPoints = UnityEngine.Object.FindObjectsOfType<SpawnPoint>();
+            if (spawnPoints.Length == 0) return;
+
+            foreach (PlayerAvatar player in GameDirector.instance.PlayerList)
+            {
+                if (!(bool)(CheatBehaviour.DeadSetField?.GetValue(player) ?? false)) continue;
+
+                // skip players whose head is at the void position (already being respawned)
+                if (player.playerDeathHead != null &&
+                    player.playerDeathHead.transform.position == new Vector3(0f, 3000f, 0f)) continue;
+
+                var spawn = spawnPoints[UnityEngine.Random.Range(0, spawnPoints.Length)];
+                player.Revive(false);
+                player.Spawn(spawn.transform.position, spawn.transform.rotation);
+                player.playerHealth.HealOther(100, true);
+            }
+        }
     }
 }
