@@ -28,6 +28,9 @@ namespace cheat
         public bool EspLoot = false;
         public bool EspExtraction = false;
 
+        public bool EspBoxes = false;
+        public bool EspSnaplines = false;
+
         public bool EspPlayerDist = true;
         public bool EspPlayerHp = true;
         public bool EspEnemyDist = true;

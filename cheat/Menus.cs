@@ -53,6 +53,9 @@ namespace cheat
             c.EspLoot = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.EspLoot, "Loot ESP", Theme.Toggle); y += RowH;
             c.EspExtraction = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.EspExtraction, "Extraction ESP", Theme.Toggle); y += RowH;
 
+            c.EspBoxes = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.EspBoxes, "Box ESP", Theme.Toggle); y += RowH;
+            c.EspSnaplines = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.EspSnaplines, "Snap Lines", Theme.Toggle); y += RowH;
+
             y += SectionGap;
             GUI.Label(new Rect(ContentX, y, ContentW, HeaderH), "── Distance Filter ──", Theme.HeaderLabel); y += HeaderH + 2;
             GUI.Label(new Rect(ContentX, y, ContentW, LabelH), $"Max: {c.MaxDistance:F0}m", Theme.Label); y += LabelH + 2;
@@ -132,7 +135,7 @@ namespace cheat
             h += RowH * 6;
             if (c.RainbowColor) h += SliderH + 2 + LabelH + 4;
             if (c.SpeedHack) h += SliderH + 2 + LabelH + 4;
-            h += SectionGap + HeaderH + 2 + RowH * 4;
+            h += SectionGap + HeaderH + 2 + RowH * 6;
             h += SectionGap + HeaderH + 2 + LabelH + 2 + SliderH + 6 + RowH * 3;
             h += SectionGap + HeaderH + 2 + RowH * 6;
             if (c.FilterLootByValue) h += SliderH + 2 + LabelH + 4;
