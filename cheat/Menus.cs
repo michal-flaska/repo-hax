@@ -55,11 +55,16 @@ namespace cheat
             y += SectionGap + 4;
             if (GUI.Button(new Rect(ContentX, y, 100, BtnH), "Upgrades", Theme.Button)) c.ShowUpgrades = true;
             if (GUI.Button(new Rect(ContentX + 110, y, 90, BtnH), "TP Extract", Theme.Button)) Helpers.TeleportToExtraction();
+
             y += BtnH + BtnGap;
             if (GUI.Button(new Rect(ContentX, y, 100, BtnH), "Troll Chat", Theme.Button)) c.ShowTrolls = true;
             if (GUI.Button(new Rect(ContentX + 110, y, 90, BtnH), "Yeet Loot", Theme.Button)) Helpers.YeetValuables(c);
+
             y += BtnH + BtnGap;
             if (GUI.Button(new Rect(ContentX, y, 200, BtnH), "Respawn All", Theme.Button)) Helpers.RespawnDeadPlayers();
+
+            y += BtnH + BtnGap;
+            if (GUI.Button(new Rect(ContentX, y, 200, BtnH), "Fetch Best Loot", Theme.Button)) Helpers.FetchBestLoot(c);
         }
 
         // Tab content
