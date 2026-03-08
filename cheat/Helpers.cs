@@ -75,6 +75,7 @@ namespace cheat
             foreach (var item in c.Valuables)
             {
                 if (item == null) continue;
+                if (Vector3.Distance(pc.transform.position, item.transform.position) <= 10f) continue;
                 float price = (float)(CheatBehaviour.DollarValueField?.GetValue(item) ?? 0f);
                 if (price > bestValue)
                 {
