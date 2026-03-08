@@ -190,6 +190,11 @@ namespace cheat
             }
         }
 
+        void OnLevelWasLoaded(int level)
+        {
+            Theme.Reset(); // fix the theme changing between levels bug
+        }
+
         private void ApplyPostProcess()
         {
             var obj = GameObject.Find("Game Director/Post Processing/Post Processing Overlay");

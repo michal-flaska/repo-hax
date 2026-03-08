@@ -92,5 +92,10 @@ namespace cheat
             tex.Apply();
             return tex;
         }
+
+        public static void Reset()
+        {
+            _initialized = false;
+        }
     }
 }
