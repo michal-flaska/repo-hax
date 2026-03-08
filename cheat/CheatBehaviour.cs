@@ -10,7 +10,7 @@ namespace cheat
 {
     public class CheatBehaviour : MonoBehaviour
     {
-        // feature toggles
+        // combat
         public bool GodMode = false;
         public bool SpeedHack = false;
         public float SpeedMultiplier = 1f;
@@ -21,14 +21,13 @@ namespace cheat
         public float RainbowSpeed = 0.5f;
         public bool BrightMode = false;
 
-        // esp toggles
+        // esp
         public bool EspPlayers = false;
         public bool EspEnemies = false;
         public bool EspLoot = false;
         public bool EspExtraction = false;
         public bool EspBoxes = false;
         public bool EspSnaplines = false;
-
         public bool EspPlayerDist = true;
         public bool EspPlayerHp = true;
         public bool EspEnemyDist = true;
@@ -41,7 +40,7 @@ namespace cheat
         public bool DistanceFilterLoot = true;
         public bool DistanceFilterPlayers = false;
 
-        // misc features
+        // misc
         public bool HighlightBestLoot = false;
         public bool EnemyNearbyWarning = false;
         public float MinLootValue = 0f;
@@ -57,10 +56,14 @@ namespace cheat
         public Color FlashlightColor = Color.white;
         public float FlashlightIntensity = 3f;
 
+        // config
+        public KeyCode ToggleMenuKey = KeyCode.Insert;
+
         // menu state
         public bool MenuOpen = false;
         public bool ShowUpgrades = false;
         public bool ShowTrolls = false;
+        public bool ShowConfig = false;
         public int UpgradeValue = 10;
 
         // cached scene objects
@@ -71,7 +74,7 @@ namespace cheat
         public PlayerAvatar[] Avatars = new PlayerAvatar[0];
         public PlayerController LocalPlayer;
 
-        // rainbow color state
+        // rainbow state
         private float _colorTimer = 0f;
         private int _colorIndex = 0;
 
@@ -168,6 +171,7 @@ namespace cheat
 
         void Start()
         {
+            CheatConfig.Load().ApplyTo(this);
             StartCoroutine(RefreshObjects());
         }
 
@@ -186,7 +190,6 @@ namespace cheat
             }
         }
 
-        // Reapplies post process overrides every frame so the game can't silently re-enable them
         private void ApplyPostProcess()
         {
             var obj = GameObject.Find("Game Director/Post Processing/Post Processing Overlay");
@@ -196,18 +199,15 @@ namespace cheat
 
             foreach (var setting in volume.profile.settings)
             {
-                if (setting is Bloom bloom)
-                    bloom.active = !NoBloom;
-                else if (setting is ChromaticAberration ca)
-                    ca.active = !NoChromaticAberration;
-                else if (setting is LensDistortion ld)
-                    ld.active = !NoLensDistortion;
+                if (setting is Bloom bloom) bloom.active = !NoBloom;
+                else if (setting is ChromaticAberration ca) ca.active = !NoChromaticAberration;
+                else if (setting is LensDistortion ld) ld.active = !NoLensDistortion;
             }
         }
 
         void Update()
         {
-            if (UnityEngine.Input.GetKeyDown(KeyCode.Insert))
+            if (UnityEngine.Input.GetKeyDown(ToggleMenuKey))
                 MenuOpen = !MenuOpen;
 
             Cursor.visible = MenuOpen;
@@ -215,7 +215,7 @@ namespace cheat
             var pc = PlayerController.instance;
             var ph = PlayerAvatar.instance?.playerHealth;
 
-            // Combat
+            // combat
 
             if (GodMode && ph != null)
             {
@@ -241,7 +241,7 @@ namespace cheat
                 }
             }
 
-            // Rainbow
+            // rainbow
 
             if (RainbowColor && PlayerAvatar.instance != null && AssetManager.instance != null)
             {
@@ -255,14 +255,12 @@ namespace cheat
                 }
             }
 
-            // Bright Mode
-            // Reapplied every frame so the game can't reset it under us (e.g. on crouch)
+            // bright Mode
 
             if (BrightMode)
             {
                 if (!_brightWasOn)
                 {
-                    // snapshot originals only once on enable
                     _origAmbientLight = RenderSettings.ambientLight;
                     _origAmbientIntensity = RenderSettings.ambientIntensity;
                     _origFog = RenderSettings.fog;
@@ -271,7 +269,6 @@ namespace cheat
                     _brightWasOn = true;
                 }
 
-                // force every frame
                 RenderSettings.ambientLight = Color.white;
                 RenderSettings.ambientIntensity = 5f;
                 RenderSettings.fog = false;
@@ -288,7 +285,7 @@ namespace cheat
                 _brightWasOn = false;
             }
 
-            // Noclip
+            // noclip
 
             if (Noclip)
             {
@@ -307,8 +304,7 @@ namespace cheat
                     float h = Input.GetAxis("Horizontal");
                     float v = Input.GetAxis("Vertical");
                     float up = Input.GetKey(KeyCode.Space) ? 1f : Input.GetKey(KeyCode.LeftControl) ? -1f : 0f;
-                    Vector3 move = cam.transform.right * h + cam.transform.forward * v + Vector3.up * up;
-                    pc.transform.position += move * NoclipSpeed * Time.deltaTime;
+                    pc.transform.position += (cam.transform.right * h + cam.transform.forward * v + Vector3.up * up) * NoclipSpeed * Time.deltaTime;
                 }
             }
             else if (_noclipWasOn)
@@ -318,13 +314,13 @@ namespace cheat
                 _noclipWasOn = false;
             }
 
-            // Post Process
-            // Reapplied every frame so the game can't silently re-enable effects
+            // post process
+            // reapplied every frame so the game can't silently re-enable effects
 
             if (NoChromaticAberration || NoBloom || NoLensDistortion)
                 ApplyPostProcess();
 
-            // Flashlight
+            // flashlight
 
             if (FlashlightCustomColor || FlashlightIntensity != 3f)
             {
@@ -346,6 +342,7 @@ namespace cheat
 
             if (ShowUpgrades) Menus.DrawUpgrades(this);
             else if (ShowTrolls) Menus.DrawTrolls(this);
+            else if (ShowConfig) Menus.DrawConfig(this);
             else Menus.DrawMain(this);
         }
     }

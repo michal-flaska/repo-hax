@@ -42,7 +42,6 @@ namespace cheat
             StatsManager.instance.DictionaryUpdateValue(dictName, steamID, c.UpgradeValue);
         }
 
-        // blasts all valuables away from the player using rigidbody force
         public static void YeetValuables(CheatBehaviour c)
         {
             var pc = PlayerController.instance;
@@ -51,19 +50,15 @@ namespace cheat
             foreach (var item in c.Valuables)
             {
                 if (item == null) continue;
-
                 var rb = item.GetComponent<Rigidbody>();
                 if (rb == null) continue;
-
                 Vector3 dir = (item.transform.position - pc.transform.position).normalized;
-                // upward angle so items fly out and up, not just sideways
                 dir = (dir + Vector3.up * 0.5f).normalized;
                 rb.AddForce(dir * 25f, ForceMode.Impulse);
             }
         }
 
-        // Teleports the single most valuable item on the map to just in front of the player.
-        // Zeroes out velocity so it doesn't go flying after landing.
+        // Teleports the single most valuable item outside 10m to just in front of the player.
         public static void FetchBestLoot(CheatBehaviour c)
         {
             var pc = PlayerController.instance;
@@ -86,15 +81,62 @@ namespace cheat
 
             if (best == null) return;
 
-            // drop it 1.5m in front and slightly above the player so it lands at feet
-            Vector3 target = pc.transform.position + pc.transform.forward * 1.5f + Vector3.up * 0.5f;
-            best.transform.position = target;
+            best.transform.position = pc.transform.position + pc.transform.forward * 1.5f + Vector3.up * 0.5f;
 
             var rb = best.GetComponent<Rigidbody>();
             if (rb != null)
             {
                 rb.velocity = Vector3.zero;
                 rb.angularVelocity = Vector3.zero;
+            }
+        }
+
+        // Teleports every valuable that isn't already near an extraction point into
+        // the nearest unlocked extraction trigger, then zeros their velocity.
+        // Uses the trigger collider bounds so items land inside the detection zone.
+        public static void AutoExtract(CheatBehaviour c)
+        {
+            // find the nearest unlocked extraction
+            ExtractionPoint target = null;
+            float closest = float.MaxValue;
+            var pc = PlayerController.instance;
+            Vector3 origin = pc != null ? pc.transform.position : Vector3.zero;
+
+            foreach (var ep in c.Extractions)
+            {
+                if (ep == null || ep.isLocked) continue;
+                float d = Vector3.Distance(origin, ep.transform.position);
+                if (d < closest) { closest = d; target = ep; }
+            }
+
+            if (target == null) return;
+
+            // get the trigger collider so we can place items inside its bounds
+            var col = target.GetComponent<Collider>();
+            Vector3 dropPos = col != null ? col.bounds.center : target.transform.position;
+
+            // spread items slightly so they don't all stack on one point (physics freakout)
+            int i = 0;
+            foreach (var item in c.Valuables)
+            {
+                if (item == null) continue;
+
+                // skip items already inside the extraction collider
+                if (col != null && col.bounds.Contains(item.transform.position)) continue;
+
+                // small grid offset so items don't all occupy the exact same point
+                float ox = (i % 4) * 0.4f - 0.6f;
+                float oz = (i / 4) * 0.4f - 0.6f;
+                item.transform.position = dropPos + new Vector3(ox, 0.3f, oz);
+
+                var rb = item.GetComponent<Rigidbody>();
+                if (rb != null)
+                {
+                    rb.velocity = Vector3.zero;
+                    rb.angularVelocity = Vector3.zero;
+                }
+
+                i++;
             }
         }
 
@@ -107,7 +149,6 @@ namespace cheat
             {
                 if (!(bool)(CheatBehaviour.DeadSetField?.GetValue(player) ?? false)) continue;
 
-                // skip players whose head is at the void position (already being respawned)
                 if (player.playerDeathHead != null &&
                     player.playerDeathHead.transform.position == new Vector3(0f, 3000f, 0f)) continue;
 

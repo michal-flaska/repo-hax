@@ -21,7 +21,6 @@ namespace cheat
         private const int TabY = 48;
         private const int ContentStartY = 82;
 
-        // 0 = Combat, 1 = ESP, 2 = Misc, 3 = Visual
         private static int _tab = 0;
         private static readonly string[] _tabNames = { "Combat", "ESP", "Misc", "Visual" };
 
@@ -33,9 +32,9 @@ namespace cheat
             GUI.Box(new Rect(MenuX, 20, MenuW, height), "REPO Hax by @pilot2254", Theme.Box);
 
             // tab row
+            int tabW = (MenuW - 20) / _tabNames.Length;
             for (int i = 0; i < _tabNames.Length; i++)
             {
-                int tabW = (MenuW - 20) / _tabNames.Length;
                 var style = i == _tab ? Theme.TabActive : Theme.TabInactive;
                 if (GUI.Button(new Rect(ContentX + i * tabW, TabY, tabW, TabH), _tabNames[i], style))
                     _tab = i;
@@ -51,23 +50,22 @@ namespace cheat
                 case 3: DrawVisual(c, ref y); break;
             }
 
-            // always-visible action buttons at the bottom
+            // bottom action buttons — always visible
             y += SectionGap + 4;
             if (GUI.Button(new Rect(ContentX, y, 100, BtnH), "Upgrades", Theme.Button)) c.ShowUpgrades = true;
             if (GUI.Button(new Rect(ContentX + 110, y, 90, BtnH), "TP Extract", Theme.Button)) Helpers.TeleportToExtraction();
-
             y += BtnH + BtnGap;
             if (GUI.Button(new Rect(ContentX, y, 100, BtnH), "Troll Chat", Theme.Button)) c.ShowTrolls = true;
             if (GUI.Button(new Rect(ContentX + 110, y, 90, BtnH), "Yeet Loot", Theme.Button)) Helpers.YeetValuables(c);
-
             y += BtnH + BtnGap;
-            if (GUI.Button(new Rect(ContentX, y, 200, BtnH), "Respawn All", Theme.Button)) Helpers.RespawnDeadPlayers();
-
+            if (GUI.Button(new Rect(ContentX, y, 100, BtnH), "Respawn All", Theme.Button)) Helpers.RespawnDeadPlayers();
+            if (GUI.Button(new Rect(ContentX + 110, y, 90, BtnH), "Fetch Loot", Theme.Button)) Helpers.FetchBestLoot(c);
             y += BtnH + BtnGap;
-            if (GUI.Button(new Rect(ContentX, y, 200, BtnH), "Fetch Best Loot", Theme.Button)) Helpers.FetchBestLoot(c);
+            if (GUI.Button(new Rect(ContentX, y, 100, BtnH), "Auto Extract", Theme.Button)) Helpers.AutoExtract(c);
+            if (GUI.Button(new Rect(ContentX + 110, y, 90, BtnH), "Config", Theme.Button)) c.ShowConfig = true;
         }
 
-        // Tab content
+        // tab content
 
         private static void DrawCombat(CheatBehaviour c, ref int y)
         {
@@ -80,16 +78,16 @@ namespace cheat
             c.SpeedHack = Toggle(c.SpeedHack, "Speed Multiplier", ref y);
             if (c.SpeedHack)
             {
-                c.SpeedMultiplier = GUI.HorizontalSlider(new Rect(ContentX, y, SliderW, SliderH), c.SpeedMultiplier, 1f, 5f); y += SliderH + 2;
-                GUI.Label(new Rect(ContentX, y, ContentW, LabelH), $"x{c.SpeedMultiplier:F1}", Theme.Label); y += LabelH + 4;
+                c.SpeedMultiplier = Slider(c.SpeedMultiplier, 1f, 5f, ref y);
+                Label($"x{c.SpeedMultiplier:F1}", ref y);
             }
 
             y += SectionGap;
             c.RainbowColor = Toggle(c.RainbowColor, "Rainbow Color", ref y);
             if (c.RainbowColor)
             {
-                c.RainbowSpeed = GUI.HorizontalSlider(new Rect(ContentX, y, SliderW, SliderH), c.RainbowSpeed, 0.1f, 2f); y += SliderH + 2;
-                GUI.Label(new Rect(ContentX, y, ContentW, LabelH), $"Speed: {c.RainbowSpeed:F1}s", Theme.Label); y += LabelH + 4;
+                c.RainbowSpeed = Slider(c.RainbowSpeed, 0.1f, 2f, ref y);
+                Label($"Speed: {c.RainbowSpeed:F1}s", ref y);
             }
         }
 
@@ -112,8 +110,8 @@ namespace cheat
 
             y += SectionGap;
             Header("── Distance Filter ──", ref y);
-            GUI.Label(new Rect(ContentX, y, ContentW, LabelH), $"Max: {c.MaxDistance:F0}m", Theme.Label); y += LabelH + 2;
-            c.MaxDistance = GUI.HorizontalSlider(new Rect(ContentX, y, SliderW, SliderH), c.MaxDistance, 5f, 200f); y += SliderH + 6;
+            Label($"Max: {c.MaxDistance:F0}m", ref y);
+            c.MaxDistance = Slider(c.MaxDistance, 5f, 200f, ref y);
             c.DistanceFilterEnemies = Toggle(c.DistanceFilterEnemies, "Filter Enemies", ref y);
             c.DistanceFilterLoot = Toggle(c.DistanceFilterLoot, "Filter Loot", ref y);
             c.DistanceFilterPlayers = Toggle(c.DistanceFilterPlayers, "Filter Players", ref y);
@@ -124,8 +122,8 @@ namespace cheat
             c.FilterLootByValue = Toggle(c.FilterLootByValue, "Min Loot Value Filter", ref y);
             if (c.FilterLootByValue)
             {
-                c.MinLootValue = GUI.HorizontalSlider(new Rect(ContentX, y, SliderW, SliderH), c.MinLootValue, 0f, 5000f); y += SliderH + 2;
-                GUI.Label(new Rect(ContentX, y, ContentW, LabelH), $"Min: ${c.MinLootValue:F0}", Theme.Label); y += LabelH + 4;
+                c.MinLootValue = Slider(c.MinLootValue, 0f, 5000f, ref y);
+                Label($"Min: ${c.MinLootValue:F0}", ref y);
             }
         }
 
@@ -134,21 +132,17 @@ namespace cheat
             c.Noclip = Toggle(c.Noclip, "Noclip / Fly", ref y);
             if (c.Noclip)
             {
-                c.NoclipSpeed = GUI.HorizontalSlider(new Rect(ContentX, y, SliderW, SliderH), c.NoclipSpeed, 1f, 50f); y += SliderH + 2;
-                GUI.Label(new Rect(ContentX, y, ContentW, LabelH), $"Speed: {c.NoclipSpeed:F0}", Theme.Label); y += LabelH + 4;
+                c.NoclipSpeed = Slider(c.NoclipSpeed, 1f, 50f, ref y);
+                Label($"Speed: {c.NoclipSpeed:F0}", ref y);
             }
         }
 
         private static void DrawVisual(CheatBehaviour c, ref int y)
         {
             c.BrightMode = Toggle(c.BrightMode, "Bright Mode", ref y);
-
-            bool nca = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.NoChromaticAberration, "No Chromatic Aberration", Theme.Toggle); y += RowH;
-            bool nb = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.NoBloom, "No Bloom", Theme.Toggle); y += RowH;
-            bool nld = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), c.NoLensDistortion, "No Lens Distortion", Theme.Toggle); y += RowH;
-            c.NoChromaticAberration = nca;
-            c.NoBloom = nb;
-            c.NoLensDistortion = nld;
+            c.NoChromaticAberration = Toggle(c.NoChromaticAberration, "No Chromatic Aberration", ref y);
+            c.NoBloom = Toggle(c.NoBloom, "No Bloom", ref y);
+            c.NoLensDistortion = Toggle(c.NoLensDistortion, "No Lens Distortion", ref y);
 
             y += SectionGap;
             Header("── Flashlight ──", ref y);
@@ -162,53 +156,44 @@ namespace cheat
                 GUI.Label(new Rect(ContentX, y, 20, LabelH), "B", Theme.Label);
                 c.FlashlightColor.b = GUI.HorizontalSlider(new Rect(ContentX + 20, y, SliderW - 20, SliderH), c.FlashlightColor.b, 0f, 1f); y += SliderH + 4;
             }
-            c.FlashlightIntensity = GUI.HorizontalSlider(new Rect(ContentX, y, SliderW, SliderH), c.FlashlightIntensity, 1f, 7f); y += SliderH + 2;
-            GUI.Label(new Rect(ContentX, y, ContentW, LabelH), $"Intensity: {c.FlashlightIntensity:F1}", Theme.Label); y += LabelH + 4;
+            c.FlashlightIntensity = Slider(c.FlashlightIntensity, 1f, 7f, ref y);
+            Label($"Intensity: {c.FlashlightIntensity:F1}", ref y);
         }
 
-        // Height calc
+        // config submenu
 
-        private static int CalcHeight(CheatBehaviour c)
+        // keybind capture state
+        private static bool _waitingForKey = false;
+
+        public static void DrawConfig(CheatBehaviour c)
         {
-            int h = ContentStartY;
+            Theme.Init();
 
-            switch (_tab)
+            GUI.Box(new Rect(MenuX, 20, MenuW, 160), "Config", Theme.Box);
+
+            int y = 50;
+
+            // keybind row
+            GUI.Label(new Rect(ContentX, y, 120, LabelH), "Toggle Menu Key:", Theme.Label);
+            string btnLabel = _waitingForKey ? "Press any key..." : c.ToggleMenuKey.ToString();
+            if (GUI.Button(new Rect(ContentX + 125, y, 95, BtnH), btnLabel, Theme.Button))
+                _waitingForKey = true;
+
+            if (_waitingForKey && Event.current.type == EventType.KeyDown && Event.current.keyCode != KeyCode.None)
             {
-                case 0: // Combat
-                    h += RowH * 4 + SectionGap;
-                    h += RowH + SectionGap; // speed toggle
-                    if (c.SpeedHack) h += SliderH + 2 + LabelH + 4;
-                    h += RowH; // rainbow toggle
-                    if (c.RainbowColor) h += SliderH + 2 + LabelH + 4;
-                    break;
-
-                case 1: // ESP
-                    h += RowH * 6 + SectionGap;
-                    h += HeaderH + 2 + RowH * 5 + SectionGap;
-                    h += HeaderH + 2 + LabelH + 2 + SliderH + 6 + RowH * 3 + SectionGap;
-                    h += RowH * 3;
-                    if (c.FilterLootByValue) h += SliderH + 2 + LabelH + 4;
-                    break;
-
-                case 2: // Misc
-                    h += RowH;
-                    if (c.Noclip) h += SliderH + 2 + LabelH + 4;
-                    break;
-
-                case 3: // Visual
-                    h += RowH * 4 + SectionGap;
-                    h += HeaderH + 2 + RowH;
-                    if (c.FlashlightCustomColor) h += (SliderH + 2) * 3 + 2;
-                    h += SliderH + 2 + LabelH + 4;
-                    break;
+                c.ToggleMenuKey = Event.current.keyCode;
+                _waitingForKey = false;
             }
 
-            // bottom buttons always present
-            h += SectionGap + 4 + BtnH + BtnGap + BtnH + BtnGap + BtnH + 12;
-            return h;
+            y += BtnH + SectionGap + 4;
+
+            if (GUI.Button(new Rect(ContentX, y, 95, BtnH), "Save", Theme.Button)) CheatConfig.From(c).Save();
+            if (GUI.Button(new Rect(ContentX + 105, y, 95, BtnH), "Load", Theme.Button)) CheatConfig.Load().ApplyTo(c);
+            y += BtnH + BtnGap;
+            if (GUI.Button(new Rect(ContentX, y, 200, BtnH), "Back", Theme.Button)) c.ShowConfig = false;
         }
 
-        // Sub-menus
+        // sub-menus
 
         public static void DrawUpgrades(CheatBehaviour c)
         {
@@ -241,9 +226,8 @@ namespace cheat
             int btnY = 72;
             int rows = 6;
             int backY = btnY + rows * 33 + 6;
-            int boxH = backY + 25 + 12;
 
-            GUI.Box(new Rect(MenuX, 20, 220, boxH), "Troll Chat", Theme.Box);
+            GUI.Box(new Rect(MenuX, 20, 220, backY + 25 + 12), "Troll Chat", Theme.Box);
             GUI.Label(new Rect(30, 48, 180, 20), "multiplayer only", Theme.Label);
 
             if (GUI.Button(new Rect(30, btnY, 180, BtnH), "Flashbang", Theme.Button)) Helpers.SendChat("<size=-111111>hi");
@@ -256,13 +240,66 @@ namespace cheat
             if (GUI.Button(new Rect(30, backY, 180, 25), "Back", Theme.Button)) c.ShowTrolls = false;
         }
 
-        // Helpers
+        // height calc
+
+        private static int CalcHeight(CheatBehaviour c)
+        {
+            int h = ContentStartY;
+
+            switch (_tab)
+            {
+                case 0: // Combat
+                    h += RowH * 4 + SectionGap + RowH;
+                    if (c.SpeedHack) h += SliderH + 2 + LabelH + 4;
+                    h += SectionGap + RowH;
+                    if (c.RainbowColor) h += SliderH + 2 + LabelH + 4;
+                    break;
+
+                case 1: // ESP
+                    h += RowH * 6 + SectionGap;
+                    h += HeaderH + 2 + RowH * 5 + SectionGap;
+                    h += HeaderH + 2 + LabelH + 4 + SliderH + 6 + RowH * 3 + SectionGap;
+                    h += RowH * 3;
+                    if (c.FilterLootByValue) h += SliderH + 2 + LabelH + 4;
+                    break;
+
+                case 2: // Misc
+                    h += RowH;
+                    if (c.Noclip) h += SliderH + 2 + LabelH + 4;
+                    break;
+
+                case 3: // Visual
+                    h += RowH * 4 + SectionGap + HeaderH + 2 + RowH;
+                    if (c.FlashlightCustomColor) h += (SliderH + 2) * 3 + 2;
+                    h += SliderH + 2 + LabelH + 4;
+                    break;
+            }
+
+            // bottom buttons
+            h += SectionGap + 4 + (BtnH + BtnGap) * 4 + 12;
+            return h;
+        }
+
+        // IMGUI helpers
 
         private static bool Toggle(bool val, string label, ref int y)
         {
             bool result = GUI.Toggle(new Rect(ContentX, y, ContentW, RowH), val, label, Theme.Toggle);
             y += RowH;
             return result;
+        }
+
+        private static float Slider(float val, float min, float max, ref int y)
+        {
+            float result = GUI.HorizontalSlider(new Rect(ContentX, y, SliderW, SliderH), val, min, max);
+            y += SliderH + 2;
+            return result;
+        }
+
+        private static void Label(string text, ref int y)
+        {
+            GUI.Label(new Rect(ContentX, y, ContentW, LabelH), text, Theme.Label);
+            y += LabelH + 4;
         }
 
         private static void Header(string text, ref int y)
