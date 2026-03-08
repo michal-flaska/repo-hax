@@ -71,7 +71,7 @@ namespace cheat
         {
             c.GodMode = Toggle(c.GodMode, "God Mode", ref y);
             c.NoRagdoll = Toggle(c.NoRagdoll, "No Ragdoll", ref y);
-            c.NoBreak = Toggle(c.NoBreak, "No Break (host)", ref y);
+            c.NoBreak = Toggle(c.NoBreak, "No Break", ref y);
             c.InfiniteStamina = Toggle(c.InfiniteStamina, "Infinite Stamina", ref y);
 
             y += SectionGap;
