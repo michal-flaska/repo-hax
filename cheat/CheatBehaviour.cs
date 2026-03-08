@@ -190,9 +190,19 @@ namespace cheat
             }
         }
 
-        void OnLevelWasLoaded(int level)
+        void OnEnable()
         {
-            Theme.Reset(); // fix the theme changing between levels bug
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
+        void OnDisable()
+        {
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+
+        private void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+        {
+            Theme.Reset();
         }
 
         private void ApplyPostProcess()
