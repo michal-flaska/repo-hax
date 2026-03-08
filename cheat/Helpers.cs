@@ -59,6 +59,7 @@ namespace cheat
         }
 
         // Teleports the single most valuable item outside 10m to just in front of the player.
+        // Uses physGrabObject.Teleport so it syncs to all clients via Photon.
         public static void FetchBestLoot(CheatBehaviour c)
         {
             var pc = PlayerController.instance;
@@ -80,23 +81,17 @@ namespace cheat
             }
 
             if (best == null) return;
+            var bestPgo = best.GetComponent<PhysGrabObject>();
+            if (bestPgo == null) return;
 
-            best.transform.position = pc.transform.position + pc.transform.forward * 1.5f + Vector3.up * 0.5f;
-
-            var rb = best.GetComponent<Rigidbody>();
-            if (rb != null)
-            {
-                rb.velocity = Vector3.zero;
-                rb.angularVelocity = Vector3.zero;
-            }
+            Vector3 dest = pc.transform.position + pc.transform.forward * 1.5f + Vector3.up * 0.5f;
+            bestPgo.Teleport(dest, best.transform.rotation);
         }
 
-        // Teleports every valuable that isn't already near an extraction point into
-        // the nearest unlocked extraction trigger, then zeros their velocity.
-        // Uses the trigger collider bounds so items land inside the detection zone.
+        // Teleports every valuable outside the extraction zone into it.
+        // Uses physGrabObject.Teleport so it syncs to all clients via Photon.
         public static void AutoExtract(CheatBehaviour c)
         {
-            // find the nearest unlocked extraction
             ExtractionPoint target = null;
             float closest = float.MaxValue;
             var pc = PlayerController.instance;
@@ -111,31 +106,21 @@ namespace cheat
 
             if (target == null) return;
 
-            // get the trigger collider so we can place items inside its bounds
             var col = target.GetComponent<Collider>();
             Vector3 dropPos = col != null ? col.bounds.center : target.transform.position;
 
-            // spread items slightly so they don't all stack on one point (physics freakout)
             int i = 0;
             foreach (var item in c.Valuables)
             {
                 if (item == null) continue;
-
-                // skip items already inside the extraction collider
+                var pgo = item.GetComponent<PhysGrabObject>();
+                if (pgo == null) continue;
                 if (col != null && col.bounds.Contains(item.transform.position)) continue;
 
-                // small grid offset so items don't all occupy the exact same point
                 float ox = (i % 4) * 0.4f - 0.6f;
                 float oz = (i / 4) * 0.4f - 0.6f;
-                item.transform.position = dropPos + new Vector3(ox, 0.3f, oz);
-
-                var rb = item.GetComponent<Rigidbody>();
-                if (rb != null)
-                {
-                    rb.velocity = Vector3.zero;
-                    rb.angularVelocity = Vector3.zero;
-                }
-
+                Vector3 dest = dropPos + new Vector3(ox, 0.3f, oz);
+                pgo.Teleport(dest, item.transform.rotation);
                 i++;
             }
         }
