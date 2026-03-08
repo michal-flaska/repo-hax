@@ -305,6 +305,9 @@ namespace cheat
                     float v = Input.GetAxis("Vertical");
                     float up = Input.GetKey(KeyCode.Space) ? 1f : Input.GetKey(KeyCode.LeftControl) ? -1f : 0f;
                     pc.transform.position += (cam.transform.right * h + cam.transform.forward * v + Vector3.up * up) * NoclipSpeed * Time.deltaTime;
+
+                    // keep zeroing velocity every frame so accumulated gravity can't apply
+                    if (_rb != null) _rb.velocity = Vector3.zero;
                 }
             }
             else if (_noclipWasOn)
