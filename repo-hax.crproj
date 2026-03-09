@@ -1,0 +1,8 @@
+<project baseDir="C:\git-repos\repo-hax\cheat\bin\Release" outputDir="C:\git-repos\repo-hax\cheat\bin\Protected" xmlns="http://confuser.codeplex.com">
+  <rule pattern="true" inherit="false">
+    <protection id="ctrl flow" />
+    <protection id="ref proxy" />
+    <protection id="constants" />
+  </rule>
+  <module path="cheat.dll" />
+</project>
