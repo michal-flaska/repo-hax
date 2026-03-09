@@ -75,18 +75,21 @@ namespace cheat
         }
     }
 
-    [HarmonyPatch(typeof(PlayerController), "FixedUpdate")]
+    [HarmonyPatch(typeof(CameraAim), "Update")]
     internal static class Patch_Spinbot
     {
-        [HarmonyPostfix]
-        private static void Postfix(PlayerController __instance)
+        static readonly FieldInfo AimHorizontalField =
+            typeof(CameraAim).GetField("aimHorizontal", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        [HarmonyPrefix]
+        private static void Prefix(CameraAim __instance)
         {
             if (!CheatBehaviour.Instance?.Spinbot ?? true) return;
-            if (__instance != PlayerController.instance) return;
 
-            float currentY = __instance.transform.eulerAngles.y;
-            float newY = currentY + CheatBehaviour.Instance.SpinSpeed * Time.fixedDeltaTime;
-            __instance.transform.rotation = Quaternion.Euler(0f, newY, 0f);
+            float h = (float)(AimHorizontalField?.GetValue(__instance) ?? 0f);
+            h += CheatBehaviour.Instance.SpinSpeed * Time.deltaTime;
+            if (h > 360f) h -= 360f;
+            AimHorizontalField?.SetValue(__instance, h);
         }
     }
 }
