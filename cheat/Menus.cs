@@ -228,7 +228,7 @@ namespace cheat
             int backY = btnY + rows * 33 + 6;
 
             GUI.Box(new Rect(MenuX, 20, 220, backY + 25 + 12), "Troll Chat", Theme.Box);
-            GUI.Label(new Rect(30, 48, 180, 20), "multiplayer only", Theme.Label);
+            GUI.Label(new Rect(30, 48, 180, 20), "(multiplayer only)", Theme.Label);
 
             if (GUI.Button(new Rect(30, btnY, 180, BtnH), "Flashbang", Theme.Button)) Helpers.SendChat("<size=-111111>hi");
             if (GUI.Button(new Rect(30, btnY + 33, 180, BtnH), "Big Text", Theme.Button)) Helpers.SendChat("<size=999>HELLO");

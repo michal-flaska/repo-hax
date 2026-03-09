@@ -11,12 +11,12 @@ namespace cheat
         private static GUIStyle _overlayStyle;
         private static Texture2D _lineTex;
 
-        private const float HighlightThreshold = 10000f;
+        private const float HighlightThreshold = 5000f;
         private const float BoxHalfWidth = 30f;
         private const float BoxHalfHeight = 50f;
         private const float LineThickness = 1.5f;
 
-        private static readonly Color _hotColor = new Color(1f, 0f, 0.47f);
+        private static readonly Color _hotColor = new Color(1f, 0f, 0.47f); // #ff0077
 
         // public draw entry point
 

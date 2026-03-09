@@ -13,7 +13,7 @@ namespace cheat
             _harmony = new Harmony("repo-hax");
             _harmony.PatchAll(typeof(Loader).Assembly);
 
-            _cheatObject = new GameObject("REPOCheat");
+            _cheatObject = new GameObject("repo-hax");
             _cheatObject.AddComponent<CheatBehaviour>();
             UnityEngine.Object.DontDestroyOnLoad(_cheatObject);
         }
