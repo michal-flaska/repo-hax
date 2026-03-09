@@ -74,4 +74,19 @@ namespace cheat
             return false;
         }
     }
+
+    [HarmonyPatch(typeof(PlayerController), "FixedUpdate")]
+    internal static class Patch_Spinbot
+    {
+        [HarmonyPostfix]
+        private static void Postfix(PlayerController __instance)
+        {
+            if (!CheatBehaviour.Instance?.Spinbot ?? true) return;
+            if (__instance != PlayerController.instance) return;
+
+            float currentY = __instance.transform.eulerAngles.y;
+            float newY = currentY + CheatBehaviour.Instance.SpinSpeed * Time.fixedDeltaTime;
+            __instance.transform.rotation = Quaternion.Euler(0f, newY, 0f);
+        }
+    }
 }

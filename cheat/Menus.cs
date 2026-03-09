@@ -140,6 +140,12 @@ namespace cheat
             }
             // c.SpoofHost = Toggle(c.SpoofHost, "Spoof Host", ref y);
             // TODO: FIX SPOOFHOST
+            c.Spinbot = Toggle(c.Spinbot, "Spinbot", ref y);
+            if (c.Spinbot)
+            {
+                c.SpinSpeed = Slider(c.SpinSpeed, 180f, 2000f, ref y);
+                Label($"Speed: {c.SpinSpeed:F0} deg/s", ref y);
+            }
         }
 
         private static void DrawVisual(CheatBehaviour c, ref int y)
@@ -271,6 +277,8 @@ namespace cheat
                 case 2: // Misc
                     h += RowH;
                     if (c.Noclip) h += SliderH + 2 + LabelH + 4;
+                    h += RowH; // spinbot toggle
+                    if (c.Spinbot) h += SliderH + 2 + LabelH + 4;
                     break;
 
                 case 3: // Visual

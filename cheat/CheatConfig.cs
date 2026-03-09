@@ -17,6 +17,9 @@ namespace cheat
         public bool RainbowColor = false;
         public float RainbowSpeed = 0.5f;
 
+        public bool Spinbot = false;
+        public float SpinSpeed = 720f;
+
         // esp
         public bool EspPlayers = false;
         public bool EspEnemies = false;
@@ -100,6 +103,9 @@ namespace cheat
             c.RainbowColor = RainbowColor;
             c.RainbowSpeed = RainbowSpeed;
 
+            c.Spinbot = Spinbot;
+            c.SpinSpeed = SpinSpeed;
+
             c.EspPlayers = EspPlayers;
             c.EspEnemies = EspEnemies;
             c.EspLoot = EspLoot;
@@ -147,6 +153,9 @@ namespace cheat
                 InfiniteStamina = c.InfiniteStamina,
                 RainbowColor = c.RainbowColor,
                 RainbowSpeed = c.RainbowSpeed,
+
+                Spinbot = c.Spinbot,
+                SpinSpeed = c.SpinSpeed,
 
                 EspPlayers = c.EspPlayers,
                 EspEnemies = c.EspEnemies,

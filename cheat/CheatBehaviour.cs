@@ -23,6 +23,10 @@ namespace cheat
         public bool RainbowColor = false;
         public float RainbowSpeed = 0.5f;
         public bool BrightMode = false;
+        
+        // spinbot
+        public bool Spinbot = false;
+        public float SpinSpeed = 720f; // degrees per second
 
         // esp
         public bool EspPlayers = false;
@@ -93,6 +97,8 @@ namespace cheat
         private bool _noclipWasOn = false;
         private CharacterController _cc;
         private Rigidbody _rb;
+
+        public static CheatBehaviour Instance { get; private set; }
 
         // reflection fields
         public static readonly FieldInfo HealthField =
@@ -176,6 +182,7 @@ namespace cheat
         {
             CheatConfig.Load().ApplyTo(this);
             StartCoroutine(RefreshObjects());
+            Instance = this;
         }
 
         private IEnumerator RefreshObjects()
@@ -242,6 +249,12 @@ namespace cheat
                 ph.InvincibleSet(9999f);
                 HealthField?.SetValue(ph, 100);
             }
+
+            // spinbot - now managed in patch.cs
+            //if (Spinbot && pc != null)
+            //{
+            //    pc.transform.Rotate(0f, SpinSpeed * Time.deltaTime, 0f, Space.World);
+            //}
 
             if (pc != null)
             {
