@@ -95,6 +95,7 @@
   <ItemGroup>
     <Compile Include="CheatBehaviour.cs" />
     <Compile Include="CheatConfig.cs" />
+    <Compile Include="CheatState.cs" />
     <Compile Include="ESP.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="Loader.cs" />

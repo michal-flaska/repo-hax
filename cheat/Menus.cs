@@ -138,6 +138,8 @@ namespace cheat
                 c.NoclipSpeed = Slider(c.NoclipSpeed, 1f, 50f, ref y);
                 Label($"Speed: {c.NoclipSpeed:F0}", ref y);
             }
+            // c.SpoofHost = Toggle(c.SpoofHost, "Spoof Host", ref y);
+            // TODO: FIX SPOOFHOST
         }
 
         private static void DrawVisual(CheatBehaviour c, ref int y)

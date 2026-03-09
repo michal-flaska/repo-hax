@@ -10,6 +10,9 @@ namespace cheat
 {
     public class CheatBehaviour : MonoBehaviour
     {
+        // spoof host
+        public bool SpoofHost = false;
+
         // combat
         public bool GodMode = false;
         public bool SpeedHack = false;
@@ -222,6 +225,8 @@ namespace cheat
 
         void Update()
         {
+            CheatState.SpoofHost = SpoofHost; // spoof host
+
             if (UnityEngine.Input.GetKeyDown(ToggleMenuKey))
                 MenuOpen = !MenuOpen;
 

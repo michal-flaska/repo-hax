@@ -50,4 +50,28 @@ namespace cheat
             return false;
         }
     }
+
+    [HarmonyPatch(typeof(SemiFunc), "IsMasterClient")]
+    internal static class Patch_GameManager_IsMasterClient
+    {
+        [HarmonyPrefix]
+        private static bool Prefix(ref bool __result)
+        {
+            if (!CheatState.SpoofHost) return true;
+            __result = true;
+            return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(SemiFunc), "IsMasterClientOrSingleplayer")]
+    internal static class Patch_GameManager_IsMasterClientOrSingleplayer
+    {
+        [HarmonyPrefix]
+        private static bool Prefix(ref bool __result)
+        {
+            if (!CheatState.SpoofHost) return true;
+            __result = true;
+            return false;
+        }
+    }
 }
