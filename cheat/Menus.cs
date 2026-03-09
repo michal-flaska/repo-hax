@@ -63,6 +63,9 @@ namespace cheat
             y += BtnH + BtnGap;
             if (GUI.Button(new Rect(ContentX, y, 100, BtnH), "Auto Extract", Theme.Button)) Helpers.AutoExtract(c);
             if (GUI.Button(new Rect(ContentX + 110, y, 90, BtnH), "Config", Theme.Button)) c.ShowConfig = true;
+            y += BtnH + BtnGap;
+            if (GUI.Button(new Rect(ContentX, y, 200, BtnH), "Max Loot Value", Theme.Button)) Helpers.MaxLootValue(c);
+            y += BtnH + BtnGap;
         }
 
         // tab content
@@ -276,7 +279,7 @@ namespace cheat
             }
 
             // bottom buttons
-            h += SectionGap + 4 + (BtnH + BtnGap) * 4 + 12;
+            h += SectionGap + 4 + (BtnH + BtnGap) * 5 + 12;
             return h;
         }
 

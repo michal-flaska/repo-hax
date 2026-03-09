@@ -143,5 +143,14 @@ namespace cheat
                 player.playerHealth.HealOther(100, true);
             }
         }
+
+        public static void MaxLootValue(CheatBehaviour c)
+        {
+            foreach (var item in c.Valuables)
+            {
+                if (item == null) continue;
+                CheatBehaviour.DollarValueField?.SetValue(item, 99999f);
+            }
+        }
     }
 }
