@@ -1,5 +1,7 @@
 ## how it looks
 
+https://www.youtube.com/watch?v=ckBguthJdZw
+
 ![alt text](image-0.png)
 ![alt text](image-1.png)
 ![alt text](image-2.png)
