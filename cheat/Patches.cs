@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using System.Reflection;
 using UnityEngine;
+using Photon.Pun;
 
 namespace cheat
 {
@@ -75,21 +76,45 @@ namespace cheat
         }
     }
 
-    [HarmonyPatch(typeof(CameraAim), "Update")]
-    internal static class Patch_Spinbot
+    [HarmonyPatch(typeof(PlayerAvatar), "OnPhotonSerializeView")]
+internal static class Patch_Spinbot
+{
+    private static float _spinY = 0f;
+    private static readonly FieldInfo ClientRotationField =
+        typeof(PlayerAvatar).GetField("clientRotation", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+    [HarmonyPrefix]
+    private static void Prefix(PlayerAvatar __instance, PhotonStream stream)
     {
-        static readonly FieldInfo AimHorizontalField =
-            typeof(CameraAim).GetField("aimHorizontal", BindingFlags.Instance | BindingFlags.NonPublic);
+        if (!stream.IsWriting) return;
+        if (!CheatBehaviour.Instance?.Spinbot ?? true) return;
 
-        [HarmonyPrefix]
-        private static void Prefix(CameraAim __instance)
+        _spinY += CheatBehaviour.Instance.SpinSpeed * Time.deltaTime;
+        if (_spinY > 360f) _spinY -= 360f;
+
+        // Temporarily replace PlayerController rotation so the stream picks it up
+        var pc = PlayerController.instance;
+        if (pc != null)
         {
-            if (!CheatBehaviour.Instance?.Spinbot ?? true) return;
-
-            float h = (float)(AimHorizontalField?.GetValue(__instance) ?? 0f);
-            h += CheatBehaviour.Instance.SpinSpeed * Time.deltaTime;
-            if (h > 360f) h -= 360f;
-            AimHorizontalField?.SetValue(__instance, h);
+            float originalY = pc.transform.eulerAngles.y;
+            pc.transform.rotation = Quaternion.Euler(0f, _spinY, 0f);
         }
     }
+
+    [HarmonyPostfix]
+    private static void Postfix(PhotonStream stream)
+    {
+        if (!stream.IsWriting) return;
+        if (!CheatBehaviour.Instance?.Spinbot ?? true) return;
+
+        // Restore real rotation — CameraAim will reset it next frame anyway
+        var pc = PlayerController.instance;
+        var cam = CameraAim.Instance;
+        if (pc != null && cam != null)
+        {
+            float realY = cam.transform.localRotation.eulerAngles.y;
+            pc.transform.rotation = Quaternion.Euler(0f, realY, 0f);
+        }
+    }
+}
 }
