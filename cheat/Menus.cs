@@ -59,7 +59,9 @@ namespace cheat
             if (GUI.Button(new Rect(ContentX + 110, y, 90, BtnH), "Yeet Loot", Theme.Button)) Helpers.YeetValuables(c);
             y += BtnH + BtnGap;
             if (GUI.Button(new Rect(ContentX, y, 100, BtnH), "Respawn All", Theme.Button)) Helpers.RespawnDeadPlayers();
-            if (GUI.Button(new Rect(ContentX + 110, y, 90, BtnH), "Fetch Loot", Theme.Button)) Helpers.FetchBestLoot(c);
+            if (GUI.Button(new Rect(ContentX + 110, y, 90, BtnH), "Fetch Best", Theme.Button)) Helpers.FetchBestLoot(c);
+            y += BtnH + BtnGap;
+            if (GUI.Button(new Rect(ContentX, y, 100, BtnH), "Fetch Cheap", Theme.Button)) Helpers.FetchCheapestLoot(c);
             y += BtnH + BtnGap;
             if (GUI.Button(new Rect(ContentX, y, 100, BtnH), "Auto Extract", Theme.Button)) Helpers.AutoExtract(c);
             if (GUI.Button(new Rect(ContentX + 110, y, 90, BtnH), "Config", Theme.Button)) c.ShowConfig = true;
@@ -289,7 +291,7 @@ namespace cheat
             }
 
             // bottom buttons
-            h += SectionGap + 4 + (BtnH + BtnGap) * 5 + 12;
+            h += SectionGap + 4 + (BtnH + BtnGap) * 6 + 12;
             return h;
         }
 

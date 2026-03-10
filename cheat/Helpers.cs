@@ -88,6 +88,34 @@ namespace cheat
             bestPgo.Teleport(dest, best.transform.rotation);
         }
 
+        public static void FetchCheapestLoot(CheatBehaviour c)
+        {
+            var pc = PlayerController.instance;
+            if (pc == null) return;
+
+            ValuableObject worst = null;
+            float worstValue = float.MaxValue;
+
+            foreach (var item in c.Valuables)
+            {
+                if (item == null) continue;
+                if (Vector3.Distance(pc.transform.position, item.transform.position) <= 10f) continue;
+                float price = (float)(CheatBehaviour.DollarValueField?.GetValue(item) ?? 0f);
+                if (price < worstValue)
+                {
+                    worstValue = price;
+                    worst = item;
+                }
+            }
+
+            if (worst == null) return;
+            var pgo = worst.GetComponent<PhysGrabObject>();
+            if (pgo == null) return;
+
+            Vector3 dest = pc.transform.position + pc.transform.forward * 1.5f + Vector3.up * 0.5f;
+            pgo.Teleport(dest, worst.transform.rotation);
+        }
+
         // Teleports every valuable outside the extraction zone into it.
         // Uses physGrabObject.Teleport so it syncs to all clients via Photon.
         public static void AutoExtract(CheatBehaviour c)
