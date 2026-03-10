@@ -122,7 +122,12 @@ namespace cheat
         [HarmonyPrefix]
         private static bool Prefix(EventData photonEvent)
         {
-            if (photonEvent.Code == 199) return false;
+            // dnspy shitnotes
+            //  199 = server kick
+            //  123 = host kick
+            //  124 = host ban
+            if (photonEvent.Code == 199 || photonEvent.Code == 123 || photonEvent.Code == 124)
+                return false;
             return true;
         }
     }
