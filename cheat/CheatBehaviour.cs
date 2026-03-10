@@ -213,6 +213,7 @@ namespace cheat
         private void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
         {
             Theme.Reset();
+            Theme.Init(); // re-init immediately so styles are ready before next OnGUI
         }
 
         private void ApplyPostProcess()
