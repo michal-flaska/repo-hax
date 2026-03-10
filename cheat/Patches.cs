@@ -77,56 +77,53 @@ namespace cheat
         }
     }
 
-    [HarmonyPatch(typeof(PlayerAvatar), "OnPhotonSerializeView")]
+    [HarmonyPatch(typeof(FlashlightController), "Update")]
+    internal static class Patch_Flashlight
+    {
+        [HarmonyPostfix]
+        private static void Postfix(FlashlightController __instance)
+        {
+            var c = CheatBehaviour.Instance;
+            bool isLocal = (bool)(CheatBehaviour.AvatarIsLocalField?.GetValue(__instance.PlayerAvatar) ?? false);
+            if (c == null || !isLocal) return;
+
+            if (c.FlashlightCustomColor)
+                __instance.spotlight.color = c.FlashlightColor;
+
+            if (c.FlashlightIntensity != 3f)
+                __instance.spotlight.intensity = c.FlashlightIntensity;
+        }
+    }
+
+    [HarmonyPatch(typeof(PlayerController), "FixedUpdate")]
     internal static class Patch_Spinbot
     {
         private static float _spinY = 0f;
-        private static readonly FieldInfo ClientRotationField =
-            typeof(PlayerAvatar).GetField("clientRotation", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-
-        [HarmonyPrefix]
-        private static void Prefix(PlayerAvatar __instance, PhotonStream stream)
-        {
-            if (!stream.IsWriting) return;
-            if (!CheatBehaviour.Instance?.Spinbot ?? true) return;
-
-            _spinY += CheatBehaviour.Instance.SpinSpeed * Time.deltaTime;
-            if (_spinY > 360f) _spinY -= 360f;
-
-            // Temporarily replace PlayerController rotation so the stream picks it up
-            var pc = PlayerController.instance;
-            if (pc != null)
-            {
-                float originalY = pc.transform.eulerAngles.y;
-                pc.transform.rotation = Quaternion.Euler(0f, _spinY, 0f);
-            }
-        }
 
         [HarmonyPostfix]
-        private static void Postfix(PhotonStream stream)
+        private static void Postfix()
         {
-            if (!stream.IsWriting) return;
-            if (!CheatBehaviour.Instance?.Spinbot ?? true) return;
+            var c = CheatBehaviour.Instance;
+            if (c == null || !c.Spinbot) return;
 
-            // Restore real rotation — CameraAim will reset it next frame anyway
-            var pc = PlayerController.instance;
-            var cam = CameraAim.Instance;
-            if (pc != null && cam != null)
-            {
-                float realY = cam.transform.localRotation.eulerAngles.y;
-                pc.transform.rotation = Quaternion.Euler(0f, realY, 0f);
-            }
+            var avatar = PlayerAvatar.instance;
+            if (avatar == null) return;
+
+            _spinY += c.SpinSpeed * Time.fixedDeltaTime;
+            if (_spinY >= 360f) _spinY -= 360f;
+
+            CheatBehaviour.ClientRotationField?.SetValue(avatar, Quaternion.Euler(0f, _spinY, 0f));
         }
+    }
 
-        [HarmonyPatch(typeof(NetworkManager), "OnEventReceivedCustom")]
-        internal static class Patch_AntiKick
+    [HarmonyPatch(typeof(NetworkManager), "OnEventReceivedCustom")]
+    internal static class Patch_AntiKick
+    {
+        [HarmonyPrefix]
+        private static bool Prefix(EventData photonEvent)
         {
-            [HarmonyPrefix]
-            private static bool Prefix(EventData photonEvent)
-            {
-                if (photonEvent.Code == 199) return false; // drop the kick event
-                return true;
-            }
+            if (photonEvent.Code == 199) return false;
+            return true;
         }
     }
 }

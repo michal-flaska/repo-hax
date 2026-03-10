@@ -125,11 +125,14 @@ namespace cheat
         public static readonly FieldInfo EnemyHealthCurrentField =
             typeof(EnemyHealth).GetField("healthCurrent", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
-        private static readonly FieldInfo BaseIntensityField =
-            typeof(FlashlightController).GetField("baseIntensity", BindingFlags.Instance | BindingFlags.NonPublic);
+        //private static readonly FieldInfo BaseIntensityField =
+        //    typeof(FlashlightController).GetField("baseIntensity", BindingFlags.Instance | BindingFlags.NonPublic);
 
         public static readonly FieldInfo DeadSetField =
             typeof(PlayerAvatar).GetField("deadSet", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+        public static readonly FieldInfo ClientRotationField =
+            typeof(PlayerAvatar).GetField("clientRotation", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
         // my dnspy shit notes
 
@@ -357,18 +360,18 @@ namespace cheat
             if (NoChromaticAberration || NoBloom || NoLensDistortion)
                 ApplyPostProcess();
 
-            // flashlight
+            //// flashlight
 
-            if (FlashlightCustomColor || FlashlightIntensity != 3f)
-            {
-                var fc = PlayerAvatar.instance?.GetComponentInChildren<FlashlightController>();
-                if (fc?.spotlight != null)
-                {
-                    if (FlashlightCustomColor)
-                        fc.spotlight.color = FlashlightColor;
-                    BaseIntensityField?.SetValue(fc, FlashlightIntensity);
-                }
-            }
+            //if (FlashlightCustomColor || FlashlightIntensity != 3f)
+            //{
+            //    var fc = PlayerAvatar.instance?.GetComponentInChildren<FlashlightController>();
+            //    if (fc?.spotlight != null)
+            //    {
+            //        if (FlashlightCustomColor)
+            //            fc.spotlight.color = FlashlightColor;
+            //        BaseIntensityField?.SetValue(fc, FlashlightIntensity);
+            //    }
+            //}
         }
 
         void OnGUI()
