@@ -116,19 +116,26 @@ namespace cheat
         }
     }
 
-    [HarmonyPatch(typeof(NetworkManager), "OnEventReceivedCustom")]
+    //[HarmonyPatch(typeof(NetworkManager), "OnEventReceivedCustom")]
+    //internal static class Patch_AntiKick
+    //{
+    //    [HarmonyPrefix]
+    //    private static bool Prefix(EventData photonEvent)
+    //    {
+    //        // dnspy shitnotes
+    //        //  199 = server kick
+    //        //  123 = host kick
+    //        //  124 = host ban
+    //        if (photonEvent.Code == 199 || photonEvent.Code == 123 || photonEvent.Code == 124)
+    //            return false;
+    //        return true;
+    //    }
+    //}
+
+    [HarmonyPatch(typeof(NetworkManager), "TriggerLeavePhotonRoomForced")]
     internal static class Patch_AntiKick
     {
         [HarmonyPrefix]
-        private static bool Prefix(EventData photonEvent)
-        {
-            // dnspy shitnotes
-            //  199 = server kick
-            //  123 = host kick
-            //  124 = host ban
-            if (photonEvent.Code == 199 || photonEvent.Code == 123 || photonEvent.Code == 124)
-                return false;
-            return true;
-        }
+        private static bool Prefix() => false; // just block it entirely
     }
 }
