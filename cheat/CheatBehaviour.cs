@@ -183,9 +183,10 @@ namespace cheat
 
         void Start()
         {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
             CheatConfig.Load().ApplyTo(this);
             StartCoroutine(RefreshObjects());
-            Instance = this;
         }
 
         private IEnumerator RefreshObjects()
